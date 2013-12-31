@@ -13,7 +13,7 @@ AT-IS-LETTER; default is not)."
 
 (defun TeX+-token-at-point (&optional at-is-letter)
   "Returns a cons cell with the boundaries of the token at point."
-  (let ((token-start (point)) (token-end (+ (point) 1)))
+  (let ((token-start (point)))
     (save-excursion
 ; There are 3 cases: a control word, a control symbol or anything else.
 ; If we are on a letter, go back until we get to a nonletter.
@@ -30,16 +30,16 @@ AT-IS-LETTER; default is not)."
 					(skip-chars-forward (TeX+-letter at-is-letter))
 					(point)))
 ;   If we are on an escaped backslash, we were on an ordinary character.
-	       (cons token-start token-end))))
+	       (cons token-start (1+ token-start)))))
 ; If we are on an unescaped backslash, this might be a control word or a control symbol.
 	    ((and (looking-at (regexp-quote TeX-esc))
 		  (not (TeX-escaped-p)))
 	     (forward-char)		; at EOF, this would lead to an error!
-;   If this is a control symbol, return (token-start . token-end + 1)
+;   If this is a control symbol, return (token-start . token-start + 2)
 	     (cons token-start (if (not (TeX+-looking-at-letter))
-				   (1+ token-end)
-;   If this is a control word, return (token-start . token-end + (number of letters))
-				 (+ token-end (skip-chars-forward (TeX+-letter at-is-letter))))))
+				   (+ 2 token-start)
+;   If this is a control word, return (token-start . token-start + 1 + (number of letters))
+				 (+ token-start 1 (skip-chars-forward (TeX+-letter at-is-letter))))))
 ; If we are on a something else, back up one char and check whether there's an unescaped backslash
 	    (t
 	     (if (bobp)
@@ -47,11 +47,11 @@ AT-IS-LETTER; default is not)."
 	       (backward-char)
 	       (cons (if (and (looking-at (regexp-quote TeX-esc))
 			      (not (TeX-escaped-p)))
-;   If yes, return (token-start - 1 . token-end).
+;   If yes, return (token-start - 1 . token-start + 1).
 			 (- token-start 1)
-;   If not, return (token-start . token-end).
+;   If not, return (token-start . token-start + 1).
 		       token-start)
-		     token-end)))))))
+		     (1+ token-start))))))))
 
 (defun TeX+-forward-token (&optional count)
   "Move forward COUNT tokens."
