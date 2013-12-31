@@ -12,7 +12,11 @@ AT-IS-LETTER; default is not)."
   (looking-at (concat "[" (TeX+-letter at-is-letter) "]")))
 
 (defun TeX+-token-at-point (&optional at-is-letter)
-  "Returns a cons cell with the boundaries of the token at point."
+  "Returns a list with the information of the token at point.
+The first and second elements are the positions of the beginning
+and end of the token and the third is the type of the token (one
+of the symbols: :control-word :control-symbol
+:normal-character)."
   (let ((opoint (point)))
     (save-excursion
 ; There are 3 cases: a control word, a control symbol or anything else.
@@ -20,38 +24,43 @@ AT-IS-LETTER; default is not)."
       (cond ((TeX+-looking-at-letter at-is-letter)
 	     (skip-chars-backward (TeX+-letter at-is-letter))
 	     (if (bobp)
-		 (cons opoint (1+ opoint))
+		 (list opoint
+		       (1+ opoint)
+		       :normal-character)
 	       (backward-char)
 ;   If we are on an unescaped backslash, we were on a control word.
 	       (if (and
 		    (looking-at (regexp-quote TeX-esc))
 		    (not (TeX-escaped-p)))
-		   (cons (point) (progn (forward-char)
-					(skip-chars-forward (TeX+-letter at-is-letter))
-					(point)))
+		   (list (point)
+			 (progn (forward-char)
+				(skip-chars-forward (TeX+-letter at-is-letter))
+				(point))
+			 :control-word)
 ;   If we are on an escaped backslash, we were on an ordinary character.
-	       (cons opoint (1+ opoint)))))
+	       (list opoint (1+ opoint) :normal-character))))
 ; If we are on an unescaped backslash, this might be a control word or a control symbol.
 	    ((and (looking-at (regexp-quote TeX-esc))
 		  (not (TeX-escaped-p)))
 	     (forward-char)		; at EOF, this would lead to an error!
-;   If this is a control symbol, return (opoint . opoint + 2)
-	     (cons opoint (if (not (TeX+-looking-at-letter))
-				   (+ 2 opoint)
-;   If this is a control word, return (opoint . opoint + 1 + (number of letters))
-				 (+ opoint 1 (skip-chars-forward (TeX+-letter at-is-letter))))))
+	     (if (TeX+-looking-at-letter)
+;   If this is a control word, return (opoint (opoint + 1 + (number of letters)) :control-word)
+		 (list opoint
+		       (+ opoint 1 (skip-chars-forward (TeX+-letter at-is-letter)))
+		       :control-word)
+;   If this is a control symbol, return (opoint (opoint + 2) :control-symbol)
+	       (list opoint (+ 2 opoint) :control-symbol)))
 ; If we are on a something else, back up one char and check whether there's an unescaped backslash
 	    (t
 	     (if (bobp)
-		 (cons opoint (1+ opoint))
+		 (list opoint (1+ opoint) :normal-character)
 	       (backward-char)
-	       (cons (if (and (looking-at (regexp-quote TeX-esc))
-			      (not (TeX-escaped-p)))
-;   If yes, return (opoint - 1 . opoint + 1).
-			 (- opoint 1)
-;   If not, return (opoint . opoint + 1).
-		       opoint)
-		     (1+ opoint))))))))
+	       (if (and (looking-at (regexp-quote TeX-esc))
+			(not (TeX-escaped-p)))
+;   If yes, we are at a control symbol
+		   (list (1- opoint) (1+ opoint) :control-symbol)
+;   If not, we are on a normal character
+		 (list opoint (1+ opoint) :normal-character))))))))
 
 (defun TeX+-forward-token (&optional count)
   "Move forward COUNT tokens."
@@ -59,12 +68,12 @@ AT-IS-LETTER; default is not)."
   (let ((count (or count 1)))
     (if (> count 0)
 	(dotimes (unused count)
-	  (goto-char (cdr (TeX+-token-at-point))))
+	  (goto-char (cadr (TeX+-token-at-point))))
       (dotimes (unused (- count))
 	(backward-char)
-	(let ((boundaries (TeX+-token-at-point)))
-	  (unless (= 1 (- (cdr boundaries) (car boundaries)))
-	    (goto-char (car boundaries))))))))
+	(let ((token-info (TeX+-token-at-point)))
+	  (unless (= 1 (- (cadr token-info) (car token-info)))
+	    (goto-char (car token-info))))))))
 
 (defun TeX+-backward-token (&optional count)
   "Move backward until encountering the beginning of a word.
