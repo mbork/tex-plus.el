@@ -33,7 +33,7 @@ of the symbols: :control-word :control-symbol
 		    (looking-at (regexp-quote TeX-esc))
 		    (not (TeX-escaped-p)))
 		   (list (point)
-			 (progn (forward-char)
+			 (progn (forward-char) ; here forward-char is safe - we are not on eob.
 				(skip-chars-forward (TeX+-letter at-is-letter))
 				(point))
 			 :control-word)
