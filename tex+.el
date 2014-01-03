@@ -11,7 +11,7 @@
 AT-IS-LETTER; default is not)."
   (looking-at (concat "[" (TeX+-letter at-is-letter) "]")))
 
-(defun TeX+-token-at-point (&optional at-is-letter)
+(defun TeX+-info-about-token-at-point (&optional at-is-letter)
   "Returns a list with the information of the token at point.
 The first and second elements are the positions of the beginning
 and end of the token and the third is the type of the token (one
@@ -68,10 +68,10 @@ of the symbols: :control-word :control-symbol
   (let ((count (or count 1)))
     (if (> count 0)
 	(dotimes (unused count)
-	  (goto-char (cadr (TeX+-token-at-point))))
+	  (goto-char (cadr (TeX+-info-about-token-at-point))))
       (dotimes (unused (- count))
 	(backward-char)
-	(let ((token-info (TeX+-token-at-point)))
+	(let ((token-info (TeX+-info-about-token-at-point)))
 	  (unless (= 1 (- (cadr token-info) (car token-info)))
 	    (goto-char (car token-info))))))))
 
