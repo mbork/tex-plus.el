@@ -62,6 +62,11 @@ of the symbols: :control-word :control-symbol
 ;   If not, we are on a normal character
 		 (list opoint (1+ opoint) :normal-character))))))))
 
+(defun TeX+-name-of-token-at-point ()
+  "Returns a string with the token at point."
+  (let ((token (TeX+-info-about-token-at-point)))
+    (buffer-substring-no-properties (car token) (cadr token))))
+
 (defun TeX+-forward-token (&optional count)
   "Move forward COUNT tokens."
   (interactive "^p")
