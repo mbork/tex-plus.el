@@ -72,6 +72,17 @@ of the symbols: :control-word :control-symbol
   (let ((token (TeX+-info-about-token-at-point)))
     (buffer-substring-no-properties (car token) (cadr token))))
 
+(defun TeX+-move-to-token-beginning ()
+  "Move point to the beginning of the token at point."
+  (interactive)
+  (goto-char (car (TeX+-info-about-token-at-point))))
+
+(defun TeX+-move-to-token-end ()
+  "Move point to the last character of the token at point."
+  (interactive)
+  (unless (eobp) ; this is a special case of a "token" of zero length!
+    (goto-char (1- (cadr (TeX+-info-about-token-at-point))))))
+
 (defun TeX+-forward-token (&optional count)
   "Move forward COUNT tokens."
   (interactive "^p")
