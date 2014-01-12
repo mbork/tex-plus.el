@@ -16,7 +16,7 @@ AT-IS-LETTER; default is not)."
 The first and second elements are the positions of the beginning
 and end of the token and the third is the type of the token (one
 of the symbols: :control-word :control-symbol
-:normal-character :end-of-buffer)."
+:normal-character :end-of-buffer :backslash-at-eob)."
   (if (eobp) ; end of buffer is special
       (list (point) (point) :end-of-buffer)
     (let ((opoint (point)))
@@ -44,14 +44,17 @@ of the symbols: :control-word :control-symbol
 ; If we are on an unescaped backslash, this might be a control word or a control symbol.
 	      ((and (looking-at (regexp-quote TeX-esc))
 		    (not (TeX-escaped-p)))
-	       (forward-char)		; at EOF, this would lead to an error!
-	       (if (TeX+-looking-at-letter)
+	       (forward-char)
+	       (cond
+;   If this is eob, we have a special case
+		((eobp) (list (1- (point)) (point) :backslash-at-eob))
 ;   If this is a control word, return (opoint (opoint + 1 + (number of letters)) :control-word)
-		   (list opoint
-			 (+ opoint 1 (skip-chars-forward (TeX+-letter at-is-letter)))
-			 :control-word)
-;   If this is a control symbol, return (opoint (opoint + 2) :control-symbol)
-		 (list opoint (+ 2 opoint) :control-symbol)))
+		((TeX+-looking-at-letter)
+		 (list opoint
+		       (+ opoint 1 (skip-chars-forward (TeX+-letter at-is-letter)))
+		       :control-word))
+;   Otherwise this is a control symbol, return (opoint (opoint + 2) :control-symbol)
+		(t (list opoint (+ 2 opoint) :control-symbol))))
 ; If we are on a something else, back up one char and check whether there's an unescaped backslash
 	      (t
 	       (if (bobp)
