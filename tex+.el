@@ -77,6 +77,17 @@ of the symbols: :control-word :control-symbol
   (interactive)
   (goto-char (car (TeX+-info-about-token-at-point))))
 
+(defun TeX+-name-of-previous-token ()
+  "Returns a string with the name of the token before the one
+point is at.  This is needed if e.g. we are on a \\lbrace and
+want to know whether there is a \\left before it."
+  (save-excursion
+    (TeX+-move-to-token-beginning)
+    (if (bobp)
+	""
+      (backward-char)
+      (TeX+-name-of-token-at-point))))
+
 (defun TeX+-move-to-token-end ()
   "Move point to the last character of the token at point."
   (interactive)
