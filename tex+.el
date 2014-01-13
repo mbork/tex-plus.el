@@ -113,3 +113,27 @@ With argument ARG, do this that many times."
   (interactive "^p")
   (TeX+-forward-token (- (or count 1))))
 
+(defvar TeX+-left-delimiters
+  '("(" "[" "\\lbrace" "\\{" "\\langle" "\\lvert")
+  "List of left delimiters acceptable after \\bigl etc.")
+
+(defvar TeX+-right-delimiters
+  '(")" "]" "\\rbrace" "\\}" "\\rangle" "\\rvert")
+  "List of right delimiters acceptable after \\bigr etc.")
+
+(defvar TeX+-left-right-delimiters
+  '("." "|" "\\|")
+  "List of delimiters acceptable after \\bigl/\\bigr etc. with
+  otherwise undefined direction.")
+
+(defvar TeX+-delim-prefixes
+  '(("\\mathopen" "\\mathclose")
+    ("\\bigl" "\\bigr")
+    ("\\Bigl" "\\Bigr")
+    ("\\biggl" "\\biggr")
+    ("\\Biggl" "\\Biggr")
+    ("\\left" "\\right"))
+  "List of pairs of prefixes for TeX delimiters, from smallest to
+  largest.  The first pair is \\mathopen/\\mathclose, which is
+  equivalent to null strings for non-ambiguous delimiters.")
+
