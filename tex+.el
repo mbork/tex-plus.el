@@ -88,6 +88,17 @@ want to know whether there is a \\left before it."
       (backward-char)
       (TeX+-name-of-token-at-point))))
 
+(defun TeX+-name-of-next-token ()
+  "Returns a string with the name of the token after the one
+point is at.  This is needed if e.g. we are on a \\left and
+want to know whether there is a delimiter after it."
+  (save-excursion
+    (TeX+-move-to-token-end)
+    (if (eobp)
+	""
+      (forward-char)
+      (TeX+-name-of-token-at-point))))
+
 (defun TeX+-move-to-token-end ()
   "Move point to the last character of the token at point."
   (interactive)
