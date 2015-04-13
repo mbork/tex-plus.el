@@ -137,7 +137,10 @@ With argument ARG, do this that many times."
   "List of delimiters acceptable after \\bigl/\\bigr etc. with
   otherwise undefined direction.")
 
-(defvar TeX+-delim-prefixes
+; A list of all possible delimiters (left, right and ambiguous), kept for efficiency reasons.  Defining it with setq might not be the best idea ever.
+(setq TeX+-delimiters (append TeX+-left-delimiters TeX+-right-delimiters TeX+-left-right-delimiters))
+
+(defvar TeX+-delim-prefix-pairs
   '(("\\mathopen" "\\mathclose")
     ("\\bigl" "\\bigr")
     ("\\Bigl" "\\Bigr")
@@ -147,4 +150,9 @@ With argument ARG, do this that many times."
   "List of pairs of prefixes for TeX delimiters, from smallest to
   largest.  The first pair is \\mathopen/\\mathclose, which is
   equivalent to null strings for non-ambiguous delimiters.")
+
+; Lists of left, right and all delim prefixes (generated once from TeX+-delim-prefix-pairs for efficiency reasons)
+(setq TeX+-left-delim-prefixes (mapcar #'car TeX+-delim-prefix-pairs))
+(setq TeX+-right-delim-prefixes (mapcar #'cadr TeX+-delim-prefix-pairs))
+(setq TeX+-delim-prefixes (append TeX+-left-delim-prefixes TeX+-right-delim-prefixes))
 
