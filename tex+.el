@@ -156,3 +156,7 @@ With argument ARG, do this that many times."
 (setq TeX+-right-delim-prefixes (mapcar #'cadr TeX+-delim-prefix-pairs))
 (setq TeX+-delim-prefixes (append TeX+-left-delim-prefixes TeX+-right-delim-prefixes))
 
+(defun TeX+-at-delimiter-p ()
+  "Check whether point is on a TeX delimiter, possibly with a prefix like \\left.  If yes, return"
+  (let ((current-token (TeX+-name-of-token-at-point)))
+    (or (member current-token TeX+-delimiters) (member current-token TeX+-delim-prefixes))))
