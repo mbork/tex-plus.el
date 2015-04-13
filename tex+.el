@@ -137,7 +137,8 @@ With argument ARG, do this that many times."
   "List of delimiters acceptable after \\bigl/\\bigr etc. with
   otherwise undefined direction.")
 
-; A list of all possible delimiters (left, right and ambiguous), kept for efficiency reasons.  Defining it with setq might not be the best idea ever.
+; A list of all possible delimiters (left, right and ambiguous), kept
+; for efficiency reasons.
 (setq TeX+-delimiters (append TeX+-left-delimiters TeX+-right-delimiters TeX+-left-right-delimiters))
 
 (defvar TeX+-delim-prefix-pairs
@@ -151,12 +152,13 @@ With argument ARG, do this that many times."
   largest.  The first pair is \\mathopen/\\mathclose, which is
   equivalent to null strings for non-ambiguous delimiters.")
 
-; Lists of left, right and all delim prefixes (generated once from TeX+-delim-prefix-pairs for efficiency reasons)
+; Lists of left, right and all delim prefixes (generated once from
+; TeX+-delim-prefix-pairs for efficiency reasons)
 (setq TeX+-left-delim-prefixes (mapcar #'car TeX+-delim-prefix-pairs))
 (setq TeX+-right-delim-prefixes (mapcar #'cadr TeX+-delim-prefix-pairs))
 (setq TeX+-delim-prefixes (append TeX+-left-delim-prefixes TeX+-right-delim-prefixes))
 
 (defun TeX+-at-delimiter-p ()
-  "Check whether point is on a TeX delimiter, possibly with a prefix like \\left.  If yes, return"
+  "Check whether point is on a TeX delimiter, possibly with a prefix like \\left."
   (let ((current-token (TeX+-name-of-token-at-point)))
     (or (member current-token TeX+-delimiters) (member current-token TeX+-delim-prefixes))))
