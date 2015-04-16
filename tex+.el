@@ -161,4 +161,9 @@ With argument ARG, do this that many times."
 (defun TeX+-at-delimiter-p ()
   "Check whether point is on a TeX delimiter, possibly with a prefix like \\left."
   (let ((current-token (TeX+-name-of-token-at-point)))
-    (or (member current-token TeX+-delimiters) (member current-token TeX+-delim-prefixes))))
+    (or (and (member current-token TeX+-delimiters)
+	     (or (not (member current-token TeX+-left-right-delimiters))
+		 (member (TeX+-name-of-previous-token) TeX+-delim-prefixes)))
+	(and (member current-token TeX+-delim-prefixes)
+	     (member (TeX+-name-of-next-token) TeX+-delimiters)))))
+
