@@ -1,5 +1,7 @@
 ;;;; My Elisp hacks for better AUCTeX experience
 
+(require 'cl)
+
 (defun TeX+-letter (&optional at-is-letter)
   "Returns a character class matching letters (including \"@\" if
   AT-IS-LETTER is true)."
@@ -196,4 +198,56 @@ an ambiguous delimiter without a prefix)."
 	   ((member current-token TeX+-right-delimiters)
 	    'right-without-prefix))))))))
 
+(defun TeX+-find-matching-delimiter ()
+  "If at a delimiter, goto the (beginning of) the matching
+one (or its prefix, if present).  In case of an unmatched delimiter,
+stop right before the border of math mode.
+
+Currently, if both delimiters have non-matching prefixes, we still
+move to the right spot, but signal an error."
+  (let ((current-delim (TeX+-current-delimiter)))
+    (when current-delim
+      (if (memq current-delim '(left-prefix right-prefix)) (TeX+-forward-token))
+      ;; Now we are at the current delimiter proper (not the prefix).
+      (let* ((direction (if (memq current-delim
+				  '(left-prefix left-with-prefix left-without-prefix))
+			    'right
+			  'left))
+	     (prefix (if (memq current-delim
+			       '(left-prefix right-prefix left-with-prefix right-with-prefix))
+			 (TeX+-name-of-previous-token)
+		       ""))
+	     (goto-next			; function to move by one
+					; token in the appropriate
+					; direction
+	      (if (eq direction 'right) #'TeX+-forward-token #'TeX+-backward-token))
+	     (inc-tokens     ; tokens which increase the delim counter
+	      (if (eq direction 'right)
+		  '(left-with-prefix left-without-prefix)
+		'(right-with-prefix right-without-prefix)))
+	     (dec-tokens     ; tokens which decrease the delim counter
+	      (if (eq direction 'right)
+		  '(right-with-prefix right-without-prefix)
+		'(left-with-prefix left-without-prefix)))
+	     (delim-counter 1))
+	(while (and (> delim-counter 0)
+		    (texmathp))		; if we get outside math mode,
+					; we'd better stop!
+	  (funcall goto-next)
+	  (setq current-delim (TeX+-current-delimiter)) ; we reuse
+					; this no longer needed
+					; variable for optimization
+	  (if (memq current-delim inc-tokens)
+	      (incf delim-counter))
+	  (if (memq current-delim dec-tokens)
+	      (decf delim-counter)))
+	(if (memq (TeX+-current-delimiter)
+		  '(left-with-prefix right-with-prefix))
+	    (if (string= (TeX+-name-of-previous-token) (TeX+-corresponding-delim prefix))
+		(TeX+-backward-token)
+	      (error "Prefix mismatch!"))
+	  (unless (string= prefix "")
+	    (error "Prefix mismatch!")))
+	(unless (texmathp)
+	  (funcall goto-next -1)))))) ; get back into math mode
 
