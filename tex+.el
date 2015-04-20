@@ -164,12 +164,36 @@ TeX+-delim-prefix-pairs table.  Returns nil if not found."
 (setq TeX+-right-delim-prefixes (mapcar #'cdr TeX+-delim-prefix-pairs))
 (setq TeX+-delim-prefixes (append TeX+-left-delim-prefixes TeX+-right-delim-prefixes))
 
-(defun TeX+-at-delimiter-p ()
-  "Check whether point is on a TeX delimiter, possibly with a prefix like \\left."
-  (let ((current-token (TeX+-name-of-token-at-point)))
-    (or (and (member current-token TeX+-delimiters)
-	     (or (not (member current-token TeX+-left-right-delimiters))
-		 (member (TeX+-name-of-previous-token) TeX+-delim-prefixes)))
-	(and (member current-token TeX+-delim-prefixes)
-	     (member (TeX+-name-of-next-token) TeX+-delimiters)))))
+(defun TeX+-current-delimiter ()
+  "Check whether we are in math mode and at a delimiter.  The
+result is non-nil if the point is on a valid delimiter; more
+precisely, it is one of the following symbols:
+- 'left-prefix if at \\bigl etc.
+- 'right-prefix if at \\bigr etc.
+- 'left-with-prefix if at \\lbrace or | etc., with a prefix before
+- 'right-with-prefix if at \\rbrace etc., with a prefix before
+- 'left-without-prefix if at \\lbrace etc., without a prefix before
+- 'right-without-prefix if at \\rbrace etc., without a prefix before
+A value of nil means that either we are not on any delimiter (or
+prefix), or on an invalid one (e.g. a prefix without any delimiter, or
+an ambiguous delimiter without a prefix)."
+  (when (texmathp)
+    (let ((current-token (TeX+-name-of-token-at-point)))
+      (cond
+       ((member current-token TeX+-left-delim-prefixes)
+	(if (member (TeX+-name-of-next-token) TeX+-delimiters)
+	    'left-prefix))
+       ((member current-token TeX+-right-delim-prefixes)
+	(if (member (TeX+-name-of-next-token) TeX+-delimiters)
+	    'right-prefix))
+       ((member current-token TeX+-delimiters)
+	(let ((prev (TeX+-name-of-previous-token)))
+	  (cond
+	   ((member prev TeX+-left-delim-prefixes) 'left-with-prefix)
+	   ((member prev TeX+-right-delim-prefixes) 'right-with-prefix)
+	   ((member current-token TeX+-left-delimiters)
+	    'left-without-prefix)
+	   ((member current-token TeX+-right-delimiters)
+	    'right-without-prefix))))))))
+
 
