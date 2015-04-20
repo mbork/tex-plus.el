@@ -154,6 +154,28 @@ With argument ARG, do this that many times."
 largest.  The first pair is \\mathopen/\\mathclose, which is
 equivalent to null strings for non-ambiguous delimiters.")
 
+(defun TeX+-smaller-prefix (prefix &optional ambiguous)
+  "Return a prefix smaller by one than the one found.  If there
+is no such prefix, return nil.  Special case: if PREFIX is
+\"\\bigl\" or \"\\bigr\", return the empty string unless
+AMBIGUOUS is non-nil, in which case return \"\\mathopen\" or
+\"\\mathclose\"."
+  (let ((side (cond			; which one to take?
+	       ((assoc prefix TeX+-delim-prefix-pairs) #'car)
+	       ((rassoc prefix TeX+-delim-prefix-pairs) #'cdr))))
+    (when side
+      (if (and (not ambiguous)
+	       (let ((case-fold-search nil)) (string-match "^\\\\big[lr]$" prefix)))
+	  ""
+	(let ((prev nil)
+	      (rest TeX+-delim-prefix-pairs))
+	  (while rest
+	    (if (string= prefix (funcall side (car rest)))
+		(setq rest nil)		; exit loop
+	      (setq prev (car rest)
+		    rest (cdr rest))))
+	  (funcall side prev))))))
+
 (defun TeX+-corresponding-delim (delimiter)
   "Find the corresponding delimiter in the
 TeX+-delim-prefix-pairs table.  Returns nil if not found."
