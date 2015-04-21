@@ -288,3 +288,9 @@ move to the right spot, but signal an error."
 	(unless (texmathp)
 	  (funcall goto-next -1)))))) ; get back into math mode
 
+(defun TeX+-change-token-at-point (new-token)
+  "Delete the token at point and insert NEW-TOKEN in its place."
+  (let ((token-info (TeX+-info-about-token-at-point)))
+    (delete-region (car token-info) (cadr token-info))
+    (insert new-token)))
+
