@@ -176,6 +176,20 @@ AMBIGUOUS is non-nil, in which case return \"\\mathopen\" or
 		      rest (cdr rest))))
 	    (funcall side prev))))))
 
+(defun TeX+-larger-prefix (prefix)
+  "Return a prefix larger by one than the one found.  If there is
+no such prefix (this may happen if either PREFIX is invalid or it
+is the last one), return nil.  Note: unlike TeX+-smaller-prefix,
+no special cases are involved."
+  (let ((side (cond
+	       ((assoc prefix TeX+-delim-prefix-pairs) #'car)
+	       ((rassoc prefix TeX+-delim-prefix-pairs) #'cdr))))
+    (if side
+	(let ((rest TeX+-delim-prefix-pairs))
+	  (while (and rest
+		      (not (string= prefix (funcall side (car rest)))))
+	    (setq rest (cdr rest)))
+	  (funcall side (cadr rest))))))
 
 (defun TeX+-corresponding-delim (delimiter)
   "Find the corresponding delimiter in the
