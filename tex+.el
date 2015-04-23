@@ -289,8 +289,16 @@ move to the right spot, but signal an error."
 	  (funcall goto-next -1)))))) ; get back into math mode
 
 (defun TeX+-change-token-at-point (new-token)
-  "Delete the token at point and insert NEW-TOKEN in its place."
-  (let ((token-info (TeX+-info-about-token-at-point)))
-    (delete-region (car token-info) (cadr token-info))
-    (insert new-token)))
+  "Delete the token at point and insert NEW-TOKEN in its place.
+Do nothing but beep if NEW-TOKEN is not a string (this is needed
+in e.g. TeX+-enlarge-delimiters, when NEW-TOKEN is nil when we
+want to enlarge \"\\left\" or \"\\right\")."
+  (if (stringp new-token)		; This is WTFery; this test
+					; should probably be done
+					; inside
+					; TeX+-enlarge-delimiters...
+      (let ((token-info (TeX+-info-about-token-at-point)))
+	(delete-region (car token-info) (cadr token-info))
+	(insert new-token))
+    (beep)))
 
