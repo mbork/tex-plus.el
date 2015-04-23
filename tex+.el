@@ -302,3 +302,34 @@ want to enlarge \"\\left\" or \"\\right\")."
 	(insert new-token))
     (beep)))
 
+(defun TeX+-enlarge-delimiters ()
+  "Enlarges the delimiter at point by one size, together with its
+matching one.  If point is not on a delimiter, throws an error."
+  (interactive)
+  (let ((current (TeX+-current-delimiter)))
+    (if (not current)
+	(error "Not at a delimiter")
+      ;; If we are at a prefix, check whether a delimiter follows, and
+      ;; if yes, make the prefix one size larger.
+      (TeX+-move-to-token-beginning)
+      (if (memq current '(left-without-prefix right-without-prefix))
+	  (let (this that)		; define THIS and THAT to what
+					; should be put here and there.
+	    (if (memq current '(left-without-prefix))
+		(setq this (caadr TeX+-delim-prefix-pairs)
+		      that (cdadr TeX+-delim-prefix-pairs))
+	      (setq this (cdadr TeX+-delim-prefix-pairs)
+		    that (caadr TeX+-delim-prefix-pairs)))
+	    (save-excursion
+	      (TeX+-find-matching-delimiter)
+	      (insert that))
+	    (insert this))
+	(if (memq current '(left-with-prefix right-with-prefix)) ; we
+					; are on a prefixed delimiter,
+					; so let's back up
+	    (TeX+-backward-token))
+	(save-excursion			; now we must be on a prefix
+	  (TeX+-find-matching-delimiter)
+	  (TeX+-change-token-at-point (TeX+-larger-prefix (TeX+-name-of-token-at-point))))
+	(TeX+-change-token-at-point (TeX+-larger-prefix (TeX+-name-of-token-at-point)))))))
+
