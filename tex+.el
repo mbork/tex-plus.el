@@ -215,7 +215,7 @@ precisely, it is one of the following symbols:
 - 'right-without-prefix if at \\rbrace etc., without a prefix before
 A value of nil means that either we are not on any delimiter (or
 prefix), or on an invalid one (e.g. a prefix without any delimiter, or
-an ambiguous delimiter without a prefix)."
+an ambiguous delimiter without a prefix), or outside math mode."
   (when (texmathp)
     (let ((current-token (TeX+-name-of-token-at-point)))
       (cond
