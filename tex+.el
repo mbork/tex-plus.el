@@ -134,14 +134,14 @@ With argument ARG, do this that many times."
   '(")" "]" "\\rbrace" "\\}" "\\rangle" "\\rvert")
   "List of right delimiters acceptable after \\bigr etc.")
 
-(defvar TeX+-left-right-delimiters
+(defvar TeX+-ambiguous-delimiters
   '("." "|" "\\|")
   "List of delimiters acceptable after \\bigl/\\bigr etc. with
   otherwise undefined direction.")
 
 ; A list of all possible delimiters (left, right and ambiguous), kept
 ; for efficiency reasons.
-(setq TeX+-delimiters (append TeX+-left-delimiters TeX+-right-delimiters TeX+-left-right-delimiters))
+(setq TeX+-delimiters (append TeX+-left-delimiters TeX+-right-delimiters TeX+-ambiguous-delimiters))
 
 (defvar TeX+-delim-prefix-pairs
   '(("\\mathopen" . "\\mathclose")
