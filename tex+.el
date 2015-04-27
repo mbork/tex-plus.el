@@ -333,3 +333,26 @@ matching one.  If point is not on a delimiter, throws an error."
 	  (TeX+-change-token-at-point (TeX+-larger-prefix (TeX+-name-of-token-at-point))))
 	(TeX+-change-token-at-point (TeX+-larger-prefix (TeX+-name-of-token-at-point)))))))
 
+(defun TeX+-diminish-delimiters ()
+  "Diminishes the delimiter at point by one size, together with its
+counterpart.  If point is not at a delimiter, throws an error.
+
+This works wrong in one case: when diminishing \\bigl ... \\bigr, and
+the delimiter is not ambiguous (like \"|\"), it just does not produce
+any prefix.  This is wrong in cases like \"\\bigr(\".  Also, dot (with
+\\left or \\right) should block diminishing."
+  (interactive)
+  (let ((current (TeX+-current-delimiter)))
+    (if (not current)
+	(error "Not at a delimiter")
+      (if (memq current '(left-without-prefix right-without-prefix))
+	  (beep)			; nothing to diminish!
+	(if (memq current '(left-with-prefix right-with-prefix))
+	    (TeX+-backward-token))
+	(let ((ambiguous (member (TeX+-name-of-next-token)
+				 TeX+-ambiguous-delimiters)))
+	  (save-excursion
+	    (TeX+-find-matching-delimiter)
+	    (TeX+-change-token-at-point (TeX+-smaller-prefix
+					 (TeX+-name-of-token-at-point) ambiguous)))
+	  (TeX+-change-token-at-point (TeX+-smaller-prefix (TeX+-name-of-token-at-point) ambiguous)))))))
