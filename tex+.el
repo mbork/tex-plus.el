@@ -242,6 +242,7 @@ stop right before the border of math mode.
 
 Currently, if both delimiters have non-matching prefixes, we still
 move to the right spot, but signal an error."
+  (interactive)
   (let ((current-delim (TeX+-current-delimiter)))
     (when current-delim
       (if (memq current-delim '(left-prefix right-prefix)) (TeX+-forward-token))
