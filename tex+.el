@@ -408,3 +408,11 @@ a delimiter, resorts to default show-paren--default function."
 			(TeX+-current-delim-pos-info))))
 	  (list (car here) (cdr here) (car there) (cdr there) mismatch))))))
 
+(define-minor-mode TeX+-show-paren-mode
+  "Toggle a minor mode showing TeX-style matching delimiters."
+  :init-value nil
+  :lighter " \\bigl"
+  (if TeX+-show-paren-mode
+      (setq show-paren-data-function #'TeX+-show-paren--LaTeX)
+    (setq show-paren-data-function #'show-paren--default)))
+
