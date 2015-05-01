@@ -235,14 +235,16 @@ an ambiguous delimiter without a prefix), or outside math mode."
 	   ((member current-token TeX+-right-delimiters)
 	    'right-without-prefix))))))))
 
-(defun TeX+-find-matching-delimiter ()
+(defun TeX+-find-matching-delimiter (&optional interactive)
   "If at a delimiter, goto the (beginning of) the matching
-one (or its prefix, if present).  In case of an unmatched delimiter,
-stop right before the border of math mode.
+one (or its prefix, if present) and return t.  In case of an
+unmatched delimiter, stop right before the border of math mode.
 
 Currently, if both delimiters have non-matching prefixes, we still
-move to the right spot, but signal an error."
-  (interactive)
+move to the right spot, but throw an error when INTERACTIVE is non-nil
+\(which it is in case of an interactive call) or return nil
+otherwise."
+  (interactive "p")
   (let ((current-delim (TeX+-current-delimiter)))
     (when current-delim
       (if (memq current-delim '(left-prefix right-prefix)) (TeX+-forward-token))
@@ -267,7 +269,8 @@ move to the right spot, but signal an error."
 	      (if (eq direction 'right)
 		  '(right-with-prefix right-without-prefix)
 		'(left-with-prefix left-without-prefix)))
-	     (delim-counter 1))
+	     (delim-counter 1)
+	     (error nil))
 	(while (and (> delim-counter 0)
 		    (texmathp))		; if we get outside math mode,
 					; we'd better stop!
@@ -283,11 +286,17 @@ move to the right spot, but signal an error."
 		  '(left-with-prefix right-with-prefix))
 	    (if (string= (TeX+-name-of-previous-token) (TeX+-corresponding-delim prefix))
 		(TeX+-backward-token)
-	      (error "Prefix mismatch!"))
+	      (when interactive
+		(error "Prefix mismatch!")
+		(setq error t)))
 	  (unless (string= prefix "")
-	    (error "Prefix mismatch!")))
+	    (when interactive
+	      (error "Prefix mismatch!")
+	      (setq error t))))
 	(unless (texmathp)
-	  (funcall goto-next -1)))))) ; get back into math mode
+	  (funcall goto-next -1)	; get back into math mode
+	  (setq error t))
+	(not error)))))
 
 (defun TeX+-change-token-at-point (new-token)
   "Delete the token at point and insert NEW-TOKEN in its place.
