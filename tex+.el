@@ -390,3 +390,19 @@ it as a cons of (BEGIN. END), or nil if not t a delimiter."
 			  (unless (eobp) (forward-char))
 			  (point))))))))
 
+(defun TeX+-show-paren--LaTeX ()
+  "A helper function enabling show-paren-mode to highlight LaTeX
+\"parens\".  Returns a list of: pos of begin/end of the current
+delimiter, then begin/end of the other one, then a Boolean
+indicating whether there is a mismatch.  If the point is not on
+a delimiter, resorts to default show-paren--default function."
+  (let ((current (TeX+-current-delimiter)))
+    (if (not current)
+	(show-paren--default)
+      (save-excursion
+	(let* ((here (TeX+-current-delim-pos-info))
+	       (mismatch (not (TeX+-find-matching-delimiter)))
+	       (there (unless mismatch
+			(TeX+-current-delim-pos-info))))
+	  (list (car here) (cdr here) (car there) (cdr there) mismatch))))))
+
