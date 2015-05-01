@@ -357,3 +357,27 @@ any prefix.  This is wrong in cases like \"\\bigr(\".  Also, dot (with
 	    (TeX+-change-token-at-point (TeX+-smaller-prefix
 					 (TeX+-name-of-token-at-point) ambiguous)))
 	  (TeX+-change-token-at-point (TeX+-smaller-prefix (TeX+-name-of-token-at-point) ambiguous)))))))
+
+(defun TeX+-current-delim-pos-info ()
+  "Get positional information about the delimiter at point and return
+it as a cons of (BEGIN. END), or nil if not t a delimiter."
+  (let ((current (TeX+-current-delimiter)))
+    (save-excursion
+      (cond ((memq current '(left-prefix right-prefix))
+	     (TeX+-move-to-token-beginning)
+	     (cons (point)
+		   (progn (TeX+-forward-token 2) (point))))
+	    ((memq current '(left-with-prefix right-with-prefix))
+	     (TeX+-move-to-token-end)
+	     (unless (eobp) (forward-char))
+	     (let ((end (point)))
+	       (TeX+-backward-token 2)
+	       (cons (point) end)))
+	    ((memq current '(left-without-prefix
+			     right-without-prefix))
+	     (cons (progn (TeX+-move-to-token-beginning)
+			  (point))
+		   (progn (TeX+-move-to-token-end)
+			  (unless (eobp) (forward-char))
+			  (point))))))))
+
