@@ -247,7 +247,9 @@ otherwise."
   (interactive "p")
   (let ((current-delim (TeX+-current-delimiter)))
     (when current-delim
-      (if (memq current-delim '(left-prefix right-prefix)) (TeX+-forward-token))
+      (if (memq current-delim '(left-prefix right-prefix))
+	  (TeX+-forward-token)
+	(TeX+-move-to-token-beginning))
       ;; Now we are at the current delimiter proper (not the prefix).
       (let* ((direction (if (memq current-delim
 				  '(left-prefix left-with-prefix left-without-prefix))
