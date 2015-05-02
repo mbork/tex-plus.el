@@ -127,15 +127,18 @@ With argument ARG, do this that many times."
   (TeX+-forward-token (- (or count 1))))
 
 (defvar TeX+-left-delimiters
-  '("(" "[" "\\lbrace" "\\{" "\\langle" "\\lvert")
+  '("(" "[" "\\lbrack" "\\{" "\\lbrace" "\\langle" "\\lfloor" "\\lceil" "\\lvert" "\\lVert"
+    "\\ulcorner" "\\llcorner")
   "List of left delimiters acceptable after \\bigl etc.")
 
 (defvar TeX+-right-delimiters
-  '(")" "]" "\\rbrace" "\\}" "\\rangle" "\\rvert")
+  '(")" "]" "\\rbrack" "\\}" "\\rbrace" "\\rangle" "\\rfloor" "\\rceil" "\\rvert" "\\rVert"
+    "\\urcorner" "\\lrcorner")
   "List of right delimiters acceptable after \\bigr etc.")
 
 (defvar TeX+-ambiguous-delimiters
-  '("." "|" "\\|")
+  '("." "/" "\\backslash" "\\uparrow" "\\downarrow" "\\updownarrow" "|" "\\vert"
+    "\\Uparrow" "\\Downarrow" "\\Updownarrow" "\\|" "\\Vert")
   "List of delimiters acceptable after \\bigl/\\bigr etc. with
   otherwise undefined direction.")
 
