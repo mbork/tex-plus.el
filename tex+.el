@@ -110,20 +110,21 @@ want to know whether there is a delimiter after it."
 (defun TeX+-forward-token (&optional count)
   "Move forward COUNT tokens."
   (interactive "^p")
-  (if (> count 0)
-      (dotimes (unused count)
-	(goto-char (cadr (TeX+-info-about-token-at-point))))
-    (dotimes (unused (- count))
-      (backward-char)
-      (let ((token-info (TeX+-info-about-token-at-point)))
-	(unless (= 1 (- (cadr token-info) (car token-info)))
-	  (goto-char (car token-info)))))))
+  (let ((count (or count 1)))
+    (if (> count 0)
+	(dotimes (unused count)
+	  (goto-char (cadr (TeX+-info-about-token-at-point))))
+      (dotimes (unused (- count))
+	(backward-char)
+	(let ((token-info (TeX+-info-about-token-at-point)))
+	  (unless (= 1 (- (cadr token-info) (car token-info)))
+	    (goto-char (car token-info))))))))
 
 (defun TeX+-backward-token (&optional count)
   "Move backward until encountering the beginning of a word.
 With argument ARG, do this that many times."
   (interactive "^p")
-  (TeX+-forward-token (- count)))
+  (TeX+-forward-token (- (or count 1))))
 
 (defvar TeX+-left-delimiters
   '("(" "[" "\\lbrack" "\\{" "\\lbrace" "\\langle" "\\lfloor" "\\lceil" "\\lvert" "\\lVert"
