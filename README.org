@@ -6,12 +6,11 @@
 This is my small set of Elisp functions to enhance the experience of using AUCTeX.
 
 * Feature and todo list:
-
 ** TODO Movement by tokens
 ** TODO Word commands replaced by token commands if point on control word
-** TODO Movement to matching math delimiters
-*Jumping from \left, \bigl etc. to corresponding \right, \bigl etc.
-** TODO Highlighting matching math delimiters
-** TODO Automatic resizing of matching math delimiters
+** DONE Movement to matching math delimiters
+*** Jumping from \left, \bigl etc. to corresponding \right, \bigl etc.
+** DONE Highlighting matching math delimiters
+** DONE Automatic resizing of matching math delimiters
 ** TODO Autocompletion of amsrefs citations
 
