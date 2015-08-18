@@ -436,5 +436,11 @@ a delimiter, resorts to default show-paren--default function."
       (setq show-paren-data-function #'TeX+-show-paren--LaTeX)
     (setq show-paren-data-function #'show-paren--default)))
 
+(eval-after-load 'latex '(progn
+			   (define-key LaTeX-mode-map (kbd "C-c C-<up>") 'TeX+-enlarge-delimiters)
+			   (define-key LaTeX-mode-map (kbd "C-c C-<down>") 'TeX+-diminish-delimiters)
+			   (define-key LaTeX-mode-map (kbd "C-c C-<right>") 'TeX+-find-matching-delimiter)
+			   (define-key LaTeX-mode-map (kbd "C-c C-<left>") 'TeX+-find-matching-delimiter)
+			   (define-key LaTeX-mode-map (kbd "C-c C-t (") 'TeX+-show-paren-mode)))
 
 (provide 'tex+)
