@@ -4,11 +4,26 @@
 (require 'tex)
 (require 'texmathp)
 
-(defun TeX+-letter (&optional at-is-letter)
-  "Returns a character class matching letters (including \"@\" if
-  AT-IS-LETTER is true)."
-  (concat "a-zA-Z"
-	  (if at-is-letter "@")))
+(defconst TeX+-letter "a-zA-Z"
+  "Character class matching TeX's notion of \"letters\" (in a normal
+file).")
+
+(defconst TeX+-letter-atletter (concat TeX+-letter "@")
+  "Character class matching TeX's notion of \"letters\" within
+a package or after \\makeatletter.")
+
+(defconst TeX+-letter-expl3 (concat TeX+-letter ":_")
+  "Character class matching TeX's notion of \"letters\" within
+a LaTeX3 package or after \\ExplSyntaxOn.")
+
+(defun TeX+-letter (&optional syntax)
+  "Returns a character class matching letters.  If SYNTAX is
+'atletter, include the @ symbol.  If SYNTAX is 'expl3, include the :_
+symbols."
+  (cond
+   ((eq syntax 'atletter) TeX+-letter-atletter)
+   ((eq syntax 'expl3) TeX+-letter-expl3)
+   (t TeX+-letter)))
 
 (defun TeX+-looking-at-letter (&optional at-is-letter)
   "Returns t if the point is at a letter (including \"@\" if
