@@ -1,6 +1,8 @@
 ;;;; My Elisp hacks for better AUCTeX experience
 
-(require 'cl)
+(require 'cl-lib)
+(require 'tex)
+(require 'texmathp)
 
 (defun TeX+-letter (&optional at-is-letter)
   "Returns a character class matching letters (including \"@\" if
@@ -419,3 +421,5 @@ a delimiter, resorts to default show-paren--default function."
       (setq show-paren-data-function #'TeX+-show-paren--LaTeX)
     (setq show-paren-data-function #'show-paren--default)))
 
+
+(provide 'tex+)
