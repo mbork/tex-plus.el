@@ -28,7 +28,7 @@ symbols."
 (defun TeX+-looking-at-letter (&optional at-is-letter)
   "Returns t if the point is at a letter (including \"@\" if
 AT-IS-LETTER; default is not)."
-  (looking-at (concat "[" (TeX+-letter at-is-letter) "]")))
+  (looking-at-p (concat "[" (TeX+-letter at-is-letter) "]")))
 
 (defun TeX+-info-about-token-at-point (&optional at-is-letter)
   "Returns a list with the information of the token at point.
