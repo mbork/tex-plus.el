@@ -391,6 +391,32 @@ any prefix.  This is wrong in cases like \"\\bigr(\".  Also, dot (with
 					 (TeX+-name-of-token-at-point) ambiguous)))
 	  (TeX+-change-token-at-point (TeX+-smaller-prefix (TeX+-name-of-token-at-point) ambiguous)))))))
 
+(defun TeX+-introduce-delimiters (count)
+  "Experimental: introduce a \\mathopen .. \\mathclose pair at point
+and at a supposed closing delimiter, i.e. the identical delimiter
+token occurrence, COUNT occurrences from here.
+
+For instance, in this situation:
+  -!-|a+b|
+we get
+  -!-\\mathop|a+b|
+COUNT may be also negative.
+
+Note: this finds the matching delimiter with a simplie call to
+`search-forward'.  This means that this function may be tricked
+e.g. by escaped backslashes, interspersed comments etc."
+  (interactive "p")
+  (save-excursion
+    (let* ((forward (> count 0))
+	   (here (if forward "\\mathopen" "\\mathclose"))
+	   (there (if forward "\\mathclose" "\\mathopen")))
+      (insert here)
+      (search-forward (TeX+-name-of-token-at-point) nil t (if forward
+							      (1+ count)
+							    count))
+      (goto-char (match-beginning 0))
+      (insert there))))
+
 (defun TeX+-current-delim-pos-info ()
   "Get positional information about the delimiter at point and return
 it as a cons of (BEGIN . END), or nil if not t a delimiter."
