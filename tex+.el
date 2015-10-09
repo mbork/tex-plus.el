@@ -31,17 +31,19 @@ AT-IS-LETTER; default is not)."
   (looking-at-p (concat "[" (TeX+-letter at-is-letter) "]")))
 
 (defun TeX+-info-about-token-at-point (&optional at-is-letter)
-  "Returns a list with the information of the token at point.
+  "Returns a list with the information about the token at point.
 The first and second elements are the positions of the beginning
 and end of the token and the third is the type of the token (one
 of the symbols: :control-word :control-symbol
-:normal-character :end-of-buffer :backslash-at-eob)."
-  (if (eobp) ; end of buffer is special
+:normal-character :end-of-buffer :backslash-at-eob).
+
+Currently, whitespace characters are treated as tokens."
+  (if (eobp)				; end of buffer is special
       (list (point) (point) :end-of-buffer)
     (let ((opoint (point)))
       (save-excursion
-; There are 3 cases: a control word, a control symbol or anything else.
-; If we are on a letter, go back until we get to a nonletter.
+					; There are 3 cases: a control word, a control symbol or anything else.
+					; If we are on a letter, go back until we get to a nonletter.
 	(cond ((TeX+-looking-at-letter at-is-letter)
 	       (skip-chars-backward (TeX+-letter at-is-letter))
 	       (if (bobp)
@@ -49,7 +51,7 @@ of the symbols: :control-word :control-symbol
 			 (1+ opoint)
 			 :normal-character)
 		 (backward-char)
-;   If we are on an unescaped backslash, we were on a control word.
+					;   If we are on an unescaped backslash, we were on a control word.
 		 (if (and
 		      (looking-at (regexp-quote TeX-esc))
 		      (not (TeX-escaped-p)))
@@ -58,32 +60,32 @@ of the symbols: :control-word :control-symbol
 				  (skip-chars-forward (TeX+-letter at-is-letter))
 				  (point))
 			   :control-word)
-;   If we are on an escaped backslash, we were on an ordinary character.
+					;   If we are on an escaped backslash, we were on an ordinary character.
 		   (list opoint (1+ opoint) :normal-character))))
-; If we are on an unescaped backslash, this might be a control word or a control symbol.
+					; If we are on an unescaped backslash, this might be a control word or a control symbol.
 	      ((and (looking-at (regexp-quote TeX-esc))
 		    (not (TeX-escaped-p)))
 	       (forward-char)
 	       (cond
-;   If this is eob, we have a special case
+					;   If this is eob, we have a special case
 		((eobp) (list (1- (point)) (point) :backslash-at-eob))
-;   If this is a control word, return (opoint (opoint + 1 + (number of letters)) :control-word)
+					;   If this is a control word, return (opoint (opoint + 1 + (number of letters)) :control-word)
 		((TeX+-looking-at-letter)
 		 (list opoint
 		       (+ opoint 1 (skip-chars-forward (TeX+-letter at-is-letter)))
 		       :control-word))
-;   Otherwise this is a control symbol, return (opoint (opoint + 2) :control-symbol)
+					;   Otherwise this is a control symbol, return (opoint (opoint + 2) :control-symbol)
 		(t (list opoint (+ 2 opoint) :control-symbol))))
-; If we are on a something else, back up one char and check whether there's an unescaped backslash
+					; If we are on a something else, back up one char and check whether there's an unescaped backslash
 	      (t
 	       (if (bobp)
 		   (list opoint (1+ opoint) :normal-character)
 		 (backward-char)
 		 (if (and (looking-at (regexp-quote TeX-esc))
 			  (not (TeX-escaped-p)))
-;   If yes, we are at a control symbol
+					;   If yes, we are at a control symbol
 		     (list (1- opoint) (1+ opoint) :control-symbol)
-;   If not, we are on a normal character
+					;   If not, we are on a normal character
 		   (list opoint (1+ opoint) :normal-character)))))))))
 
 (defun TeX+-name-of-token-at-point ()
@@ -391,7 +393,7 @@ any prefix.  This is wrong in cases like \"\\bigr(\".  Also, dot (with
 
 (defun TeX+-current-delim-pos-info ()
   "Get positional information about the delimiter at point and return
-it as a cons of (BEGIN. END), or nil if not t a delimiter."
+it as a cons of (BEGIN . END), or nil if not t a delimiter."
   (let ((current (TeX+-current-delimiter)))
     (save-excursion
       (cond ((memq current '(left-prefix right-prefix))
