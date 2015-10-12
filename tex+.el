@@ -4,31 +4,43 @@
 (require 'tex)
 (require 'texmathp)
 
-(defconst TeX+-letter "a-zA-Z"
+(defconst TeX+-normal-letter "a-zA-Z"
   "Character class matching TeX's notion of \"letters\" (in a normal
 file).")
 
-(defconst TeX+-letter-atletter (concat TeX+-letter "@")
+(defconst TeX+-internal-letter (concat TeX+-normal-letter "@")
   "Character class matching TeX's notion of \"letters\" within
-a package or after \\makeatletter.")
+a package, a class or after \\makeatletter.")
 
-(defconst TeX+-letter-expl3 (concat TeX+-letter ":_")
+(defconst TeX+-expl3-letter (concat TeX+-normal-letter ":_")
   "Character class matching TeX's notion of \"letters\" within
 a LaTeX3 package or after \\ExplSyntaxOn.")
 
-(defun TeX+-letter (&optional syntax)
-  "Returns a character class matching letters.  If SYNTAX is
-'atletter, include the @ symbol.  If SYNTAX is 'expl3, include the :_
-symbols."
-  (cond
-   ((eq syntax 'atletter) TeX+-letter-atletter)
-   ((eq syntax 'expl3) TeX+-letter-expl3)
-   (t TeX+-letter)))
+(defvar TeX+-letter TeX+-normal-letter
+  "Character class matching TeX's notion of \"letters\" (in the
+current context).")
+(make-variable-buffer-local 'TeX+-letter)
 
-(defun TeX+-looking-at-letter (&optional at-is-letter)
-  "Returns t if the point is at a letter (including \"@\" if
-AT-IS-LETTER; default is not)."
-  (looking-at-p (concat "[" (TeX+-letter at-is-letter) "]")))
+(defun TeX+-make-at-letter ()
+  "Change `TeX+-letter' to `TeX+-internal-letter'."
+  (interactive)
+  (setq TeX+-letter TeX+-internal-letter)
+  (TeX+-update-regexen))
+
+(defun TeX+-make-at-other ()
+  "Change `TeX+-letter' to `TeX+-normal-letter'."
+  (interactive)
+  (setq TeX+-letter TeX+-normal-letter)
+  (TeX+-update-regexen))
+
+(defun TeX+-expl-syntax-on ()
+  "Change `TeX+-letter' to `TeX+-expl3-letter'."
+  (interactive)
+  (setq TeX+-letter TeX+-expl3-letter)
+  (TeX+-update-regexen))
+
+(defalias 'TeX+-expl-syntax-off 'TeX+-make-at-other)
+
 
 (defun TeX+-info-about-token-at-point (&optional at-is-letter)
   "Returns a list with the information about the token at point.
