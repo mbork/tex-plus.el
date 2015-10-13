@@ -21,6 +21,10 @@ a LaTeX3 package or after \\ExplSyntaxOn.")
 current context).")
 (make-variable-buffer-local 'TeX+-letter)
 
+(defvar TeX+-letter-regex (concat "[" TeX+-letter "]")
+  "A regex matching a TeX letter.")
+(make-variable-buffer-local 'TeX+-letter-regex)
+
 (defun TeX+-make-at-letter ()
   "Change `TeX+-letter' to `TeX+-internal-letter'."
   (interactive)
@@ -41,81 +45,148 @@ current context).")
 
 (defalias 'TeX+-expl-syntax-off 'TeX+-make-at-other)
 
+(defun TeX+-update-regexen ()
+  "Update the regexen according to the current definition of
+a letter."
+  (setq TeX+-letter-regex (concat "[" TeX+-letter "]")))
 
-(defun TeX+-info-about-token-at-point (&optional at-is-letter)
-  "Returns a list with the information about the token at point.
-The first and second elements are the positions of the beginning
-and end of the token and the third is the type of the token (one
-of the symbols: :control-word :control-symbol
-:normal-character :end-of-buffer :backslash-at-eob).
+(defconst TeX+-esc-char (string-to-char TeX-esc)
+  "The backslash as a character.")
 
-Currently, whitespace characters are treated as tokens."
-  (if (eobp)				; end of buffer is special
-      (list (point) (point) :end-of-buffer)
-    (let ((opoint (point)))
-      (save-excursion
-					; There are 3 cases: a control word, a control symbol or anything else.
-					; If we are on a letter, go back until we get to a nonletter.
-	(cond ((TeX+-looking-at-letter at-is-letter)
-	       (skip-chars-backward (TeX+-letter at-is-letter))
-	       (if (bobp)
-		   (list opoint
-			 (1+ opoint)
-			 :normal-character)
-		 (backward-char)
-					;   If we are on an unescaped backslash, we were on a control word.
-		 (if (and
-		      (looking-at (regexp-quote TeX-esc))
-		      (not (TeX-escaped-p)))
-		     (list (point)
-			   (progn (forward-char) ; here forward-char is safe - we are not on eob.
-				  (skip-chars-forward (TeX+-letter at-is-letter))
-				  (point))
-			   :control-word)
-					;   If we are on an escaped backslash, we were on an ordinary character.
-		   (list opoint (1+ opoint) :normal-character))))
-					; If we are on an unescaped backslash, this might be a control word or a control symbol.
-	      ((and (looking-at (regexp-quote TeX-esc))
-		    (not (TeX-escaped-p)))
-	       (forward-char)
-	       (cond
-					;   If this is eob, we have a special case
-		((eobp) (list (1- (point)) (point) :backslash-at-eob))
-					;   If this is a control word, return (opoint (opoint + 1 + (number of letters)) :control-word)
-		((TeX+-looking-at-letter)
-		 (list opoint
-		       (+ opoint 1 (skip-chars-forward (TeX+-letter at-is-letter)))
-		       :control-word))
-					;   Otherwise this is a control symbol, return (opoint (opoint + 2) :control-symbol)
-		(t (list opoint (+ 2 opoint) :control-symbol))))
-					; If we are on a something else, back up one char and check whether there's an unescaped backslash
-	      (t
-	       (if (bobp)
-		   (list opoint (1+ opoint) :normal-character)
-		 (backward-char)
-		 (if (and (looking-at (regexp-quote TeX-esc))
-			  (not (TeX-escaped-p)))
-					;   If yes, we are at a control symbol
-		     (list (1- opoint) (1+ opoint) :control-symbol)
-					;   If not, we are on a normal character
-		   (list opoint (1+ opoint) :normal-character)))))))))
+(defun TeX+-looking-at-esc ()
+  "Return t if the point is on a backslash."
+  (eq (char-after) TeX+-esc-char))
+
+(defun TeX+-looking-at-unescaped-esc ()
+  "Return t if the point is on an unescaped backslash."
+  (and (TeX+-looking-at-esc)
+       (not (TeX-escaped-p))))
+
+(defun TeX+-skip-blanks-backward ()
+  "Skip whitespace characters (spaces, tabs and newlines)
+backward.  Return the number of newline characters skipped this
+way."
+  (let ((newlines 0))
+    (while (progn
+	     (skip-chars-backward " \t")
+	     (eq (char-before) ?\n))
+      (backward-char)
+      (cl-incf newlines))
+    newlines))
+
+; Moving to the beginning of the token at point is the fundamental,
+; non-trivial operation.  There are quite a few categories of possible
+; tokens: a control symbol, a control word (possibly followed by
+; whitespace), implicit \par (more than one \newline, possibly
+; interspersed by other whitespace), beginning of buffer, whitespace
+; (but not after a control word, unless it's an implicit \par), other
+; character.  The purpose of this function is to determine which one
+; we are at and to move to its beginning.
+(defun TeX+-move-beginning-of-token ()
+  "Move to the beginning of TeX token the point is at.
+Move also if the point is on whitespace.  Return a non-nil value
+iff the point was moved."
+  (interactive)
+  (cond ((looking-at-p TeX+-letter-regex)
+	 (let ((opoint (point)))
+	   (skip-chars-backward TeX+-letter)
+	   (if (bobp)
+	       (progn (goto-char opoint)
+		      nil)
+	     (backward-char)
+	     (if (TeX+-looking-at-unescaped-esc)
+		 (point)
+	       (goto-char opoint)
+	       nil))))
+	((looking-at-p "[ \t\n]")
+	 (let ((opoint (point)))
+	   (skip-chars-forward " \t\n")
+	   (if (> (TeX+-skip-blanks-backward) 1)
+	       (skip-chars-forward " \t")
+	     (if (and (< (skip-chars-backward TeX+-letter) 0)
+		      (eq (char-before) TeX+-esc-char)
+		      (not (TeX-escaped-p (1- (point)))))
+		 (progn (backward-char)
+			(point))
+	       (unless (eq (point) opoint)
+		 (point))))))
+	(t (if (and (eq (char-before) TeX+-esc-char)
+		    (not (TeX-escaped-p (1- (point)))))
+	       (backward-char)))))
+
+; This function could probably be optimized for speed.  We'll see,
+; however, whether this will be necessary.
+(defun TeX+-info-about-token-beginning-at-point ()
+  "Return a cons cell with car being the token beginning at point
+and cdr being one of the following symbols: 'control-symbol,
+'control-word, 'implicit-par, 'whitespace, 'normal-character,
+'eob.
+
+For simplicity, if the point is at a backslash, which is the last
+character in the buffer, it treats it as a control symbol."
+  (cond ((eobp) (cons "" 'eob))
+	((eq (char-after) TeX+-esc-char)
+	 (save-excursion
+	   (forward-char)
+	   (if (looking-at-p TeX+-letter-regex)
+	       (cons (buffer-substring-no-properties
+		      (1- (point))
+		      (save-excursion
+			(skip-chars-forward TeX+-letter)
+			(point)))
+		     'control-word)
+	     (cons (buffer-substring-no-properties
+		    (1- (point))
+		    (min (1+ (point)) (point-max)))
+		   'control-symbol))))
+	((looking-at-p "[ \t\n]")
+	 (cons (buffer-substring-no-properties
+		(point)
+		(save-excursion
+		  (skip-chars-forward " \t\n")
+		  (point)))
+	       (if (looking-at "[ \t]*\\(?:\n[ \t]*\\)\\{2,\\}")
+		   'implicit-par
+		 'whitespace)))
+	(t (cons (buffer-substring-no-properties
+		  (point)
+		  (1+ (point)))
+		 'normal-character))))
+
+; This function assumes that the point is at the beginning of
+; a token.  It's behavior is undefined otherwise.
+(defun TeX+-move-from-beginning-to-end-of-token ()
+  "Move past the current token, assuming the point is at its
+beginning.  If at a control word, move past the trailing
+whitespace, too."
+  (cl-case (cdr (TeX+-info-about-token-beginning-at-point))
+    (control-symbol (forward-char 2))
+    (control-word (forward-char)
+		   (skip-chars-forward TeX+-letter)
+		   (skip-chars-forward " \t")
+		   (unless (looking-at-p "\\(?:\n[ \t]*\\)\\{2,\\}")
+		     (skip-chars-forward " \t\n")))
+    ((implicit-par whitespace) (skip-chars-forward " \t\n"))
+    (normal-character (forward-char))))
+
+(defun TeX+-move-end-of-token ()
+  "Move to the end of the token the point is at."
+  (interactive)
+  (TeX+-move-beginning-of-token)
+  (TeX+-move-from-beginning-to-end-of-token))
 
 (defun TeX+-name-of-token-at-point ()
   "Returns a string with the token at point."
-  (let ((token (TeX+-info-about-token-at-point)))
-    (buffer-substring-no-properties (car token) (cadr token))))
-
-(defun TeX+-move-to-token-beginning ()
-  "Move point to the beginning of the token at point."
-  (interactive)
-  (goto-char (car (TeX+-info-about-token-at-point))))
+  (save-excursion
+    (TeX+-move-beginning-of-token)
+    (car (TeX+-info-about-token-beginning-at-point))))
 
 (defun TeX+-name-of-previous-token ()
   "Returns a string with the name of the token before the one
 point is at.  This is needed if e.g. we are on a \\lbrace and
 want to know whether there is a \\left before it."
   (save-excursion
-    (TeX+-move-to-token-beginning)
+    (TeX+-move-beginning-of-token)
     (if (bobp)
 	""
       (backward-char)
@@ -126,34 +197,23 @@ want to know whether there is a \\left before it."
 point is at.  This is needed if e.g. we are on a \\left and
 want to know whether there is a delimiter after it."
   (save-excursion
-    (TeX+-move-to-token-end)
+    (TeX+-move-end-of-token)
     (if (eobp)
 	""
-      (forward-char)
       (TeX+-name-of-token-at-point))))
-
-(defun TeX+-move-to-token-end ()
-  "Move point to the last character of the token at point."
-  (interactive)
-  (unless (eobp) ; this is a special case of a "token" of zero length!
-    (goto-char (1- (cadr (TeX+-info-about-token-at-point))))))
 
 (defun TeX+-forward-token (&optional count)
   "Move forward COUNT tokens."
   (interactive "^p")
   (let ((count (or count 1)))
     (if (> count 0)
-	(dotimes (unused count)
-	  (let ((token (TeX+-info-about-token-at-point)))
-	    (goto-char (cadr token))
-	    (when (and (eq (caddr token) :control-word)
-		       (looking-at "[ \t]*\n?[ \t]*"))
-	      (goto-char (match-end 0)))))
+	(progn
+	  (TeX+-move-beginning-of-token)
+	  (dotimes (unused count)
+	    (TeX+-move-end-of-token)))
       (dotimes (unused (- count))
 	(backward-char)
-	(let ((token-info (TeX+-info-about-token-at-point)))
-	  (unless (= 1 (- (cadr token-info) (car token-info)))
-	    (goto-char (car token-info))))))))
+	(TeX+-move-beginning-of-token)))))
 
 (defun TeX+-backward-token (&optional count)
   "Move backward until encountering the beginning of a word.
@@ -287,7 +347,7 @@ otherwise."
     (when current-delim
       (if (memq current-delim '(left-prefix right-prefix))
 	  (TeX+-forward-token)
-	(TeX+-move-to-token-beginning))
+	(TeX+-move-beginning-of-token))
       ;; Now we are at the current delimiter proper (not the prefix).
       (let* ((direction (if (memq current-delim
 				  '(left-prefix left-with-prefix left-without-prefix))
@@ -361,7 +421,7 @@ matching one.  If point is not on a delimiter, throws an error."
 	(error "Not at a delimiter")
       ;; If we are at a prefix, check whether a delimiter follows, and
       ;; if yes, make the prefix one size larger.
-      (TeX+-move-to-token-beginning)
+      (TeX+-move-beginning-of-token)
       (if (memq current '(left-without-prefix right-without-prefix))
 	  (let (this that)		; define THIS and THAT to what
 					; should be put here and there.
@@ -439,21 +499,19 @@ it as a cons of (BEGIN . END), or nil if not t a delimiter."
   (let ((current (TeX+-current-delimiter)))
     (save-excursion
       (cond ((memq current '(left-prefix right-prefix))
-	     (TeX+-move-to-token-beginning)
+	     (TeX+-move-beginning-of-token)
 	     (cons (point)
 		   (progn (TeX+-forward-token 2) (point))))
 	    ((memq current '(left-with-prefix right-with-prefix))
-	     (TeX+-move-to-token-end)
-	     (unless (eobp) (forward-char))
+	     (TeX+-move-end-of-token)
 	     (let ((end (point)))
 	       (TeX+-backward-token 2)
 	       (cons (point) end)))
 	    ((memq current '(left-without-prefix
 			     right-without-prefix))
-	     (cons (progn (TeX+-move-to-token-beginning)
+	     (cons (progn (TeX+-move-beginning-of-token)
 			  (point))
-		   (progn (TeX+-move-to-token-end)
-			  (unless (eobp) (forward-char))
+		   (progn (TeX+-move-end-of-token)
 			  (point))))))))
 
 (defun TeX+-show-paren--LaTeX ()
