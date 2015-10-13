@@ -289,11 +289,11 @@ no special cases are involved."
 	    (setq rest (cdr rest)))
 	  (funcall side (cadr rest))))))
 
-(defun TeX+-corresponding-delim (delimiter)
-  "Find the corresponding delimiter in the
+(defun TeX+-corresponding-delim-prefix (prefix)
+  "Find the corresponding delimiter prefix in the
 TeX+-delim-prefix-pairs table.  Returns nil if not found."
-  (or (cdr (assoc delimiter TeX+-delim-prefix-pairs))
-      (car (rassoc delimiter TeX+-delim-prefix-pairs))))
+  (or (cdr (assoc prefix TeX+-delim-prefix-pairs))
+      (car (rassoc prefix TeX+-delim-prefix-pairs))))
 
 ; Lists of left, right and all delim prefixes (generated once from
 ; TeX+-delim-prefix-pairs for efficiency reasons)
@@ -384,7 +384,7 @@ otherwise."
 	      (decf delim-counter)))
 	(if (memq (TeX+-current-delimiter)
 		  '(left-with-prefix right-with-prefix))
-	    (if (string= (TeX+-name-of-previous-token) (TeX+-corresponding-delim prefix))
+	    (if (string= (TeX+-name-of-previous-token) (TeX+-corresponding-delim-prefix prefix))
 		(TeX+-backward-token)
 	      (when interactive
 		(error "Prefix mismatch!")
