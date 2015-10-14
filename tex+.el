@@ -579,3 +579,5 @@ a delimiter, resorts to default show-paren--default function."
 			   (define-key LaTeX-mode-map (kbd "C-c C-t (") 'TeX+-show-paren-mode)))
 
 (provide 'tex+)
+
+;;; tex+.el ends here
