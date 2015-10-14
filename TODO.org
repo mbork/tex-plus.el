@@ -1,0 +1,8 @@
+* Feature and todo list:
+** DONE Movement by tokens
+** TODO Word commands replaced by token commands if point on control word
+** DONE Movement to matching math delimiters
+*** Jumping from \left, \bigl etc. to corresponding \right, \bigl etc.
+** DONE Highlighting matching math delimiters
+** DONE Automatic resizing of matching math delimiters
+** TODO Autocompletion of amsrefs citations
