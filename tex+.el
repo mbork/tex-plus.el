@@ -502,12 +502,16 @@ token occurrence, COUNT occurrences from here.
 For instance, in this situation:
   -!-|a+b|
 we get
-  -!-\\mathop|a+b|
+  -!-\\mathopen|a+b\mathclose|
 COUNT may be also negative.
 
-Note: this finds the matching delimiter with a simplie call to
+Note: this finds the matching delimiter with a simple call to
 `search-forward'.  This means that this function may be tricked
-e.g. by escaped backslashes, interspersed comments etc."
+e.g. by escaped backslashes, interspersed comments etc.
+
+TODO: this funtion might benefit from implementing TeX's rules whether
+to treat an ordinary symbol as a delimiter (see the TeXbook, chapters
+on math)."
   (interactive "p")
   (save-excursion
     (let* ((forward (> count 0))
