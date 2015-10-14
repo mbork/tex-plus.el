@@ -1,4 +1,31 @@
-;;;; My Elisp hacks for better AUCTeX experience
+;;; tex+.el -- my enhancements to AUCTeX
+
+;; Copyright (C) 2015 Marcin 'mbork' Borkowski
+
+;; Author: Marcin Borkowski <mbork@mbork.pl>
+;; Keywords: tex, convenience
+
+;; This file is NOT part of GNU Emacs.
+
+;; tex+.el is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, version 3 of the License.
+
+;; tex+.el is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with tex+.el.
+;; If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;; tex+.el is a set of functions enhancing the experience of editing
+;; (La)TeX files using AUCTeX.  The areas covered are currently
+;; tokenization of the TeX file and complex math delimiters.
+
+;;; Code:
 
 (require 'cl-lib)
 (require 'tex)
