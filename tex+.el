@@ -564,6 +564,8 @@ a delimiter, resorts to default show-paren--default function."
   (if TeX+-show-paren-mode
       (setq show-paren-data-function #'TeX+-show-paren--LaTeX)
     (setq show-paren-data-function #'show-paren--default)))
+(make-variable-buffer-local 'show-paren-data-function)
+
 
 (eval-after-load 'latex '(progn
 			   (define-key LaTeX-mode-map (kbd "C-c C-0") 'TeX+-enlarge-delimiters)
