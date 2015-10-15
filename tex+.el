@@ -434,9 +434,12 @@ want to enlarge \"\\left\" or \"\\right\")."
 					; should probably be done
 					; inside
 					; TeX+-enlarge-delimiters...
-      (let ((token-info (TeX+-info-about-token-at-point)))
-	(delete-region (car token-info) (cadr token-info))
-	(insert new-token))
+      (progn (TeX+-move-beginning-of-token)
+	     (delete-region (point)
+			    (progn
+			      (TeX+-move-from-beginning-to-end-of-token)
+			      (point)))
+	     (insert new-token))
     (beep)))
 
 (defun TeX+-enlarge-delimiters ()
