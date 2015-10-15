@@ -439,7 +439,7 @@ want to enlarge \"\\left\" or \"\\right\")."
 			    (progn
 			      (TeX+-move-from-beginning-to-end-of-token)
 			      (point)))
-	     (insert new-token))
+	     (save-excursion (insert new-token)))
     (beep)))
 
 (defun TeX+-enlarge-delimiters ()
@@ -463,7 +463,7 @@ matching one.  If point is not on a delimiter, throws an error."
 	    (save-excursion
 	      (TeX+-find-matching-delimiter)
 	      (insert that))
-	    (insert this))
+	    (save-excursion (insert this)))
 	(if (memq current '(left-with-prefix right-with-prefix)) ; we
 					; are on a prefixed delimiter,
 					; so let's back up
