@@ -89,6 +89,12 @@ a letter."
   (and (TeX+-looking-at-esc)
        (not (TeX-escaped-p))))
 
+(defun TeX+-looking-back-at-unescaped-esc ()
+  "Return t if the character before point is an unescaped
+backslash."
+  (and (eq (char-before) TeX+-esc-char)
+       (not (TeX-escaped-p (1- (point))))))
+
 (defun TeX+-skip-blanks-backward ()
   "Skip whitespace characters (spaces, tabs and newlines)
 backward.  Return the number of newline characters skipped this
