@@ -117,35 +117,38 @@ way."
 ; we are at and to move to its beginning.
 (defun TeX+-move-beginning-of-token ()
   "Move to the beginning of TeX token the point is at.
-Move also if the point is on whitespace.  Return a non-nil value
-iff the point was moved."
+Treat whitespace after a control word as belonging to it."
   (interactive)
-  (cond ((looking-at-p TeX+-letter-regex)
-	 (let ((opoint (point)))
+  (let ((opoint (point)))
+    (cond ((looking-at-p TeX+-letter-regex)
 	   (skip-chars-backward TeX+-letter)
 	   (if (bobp)
-	       (progn (goto-char opoint)
-		      nil)
+	       (goto-char opoint)
 	     (backward-char)
 	     (if (TeX+-looking-at-unescaped-esc)
 		 (point)
-	       (goto-char opoint)
-	       nil))))
-	((looking-at-p "[ \t\n]")
-	 (let ((opoint (point)))
-	   (skip-chars-forward " \t\n")
-	   (if (> (TeX+-skip-blanks-backward) 1)
-	       (skip-chars-forward " \t")
-	     (if (and (< (skip-chars-backward TeX+-letter) 0)
-		      (eq (char-before) TeX+-esc-char)
-		      (not (TeX-escaped-p (1- (point)))))
-		 (progn (backward-char)
-			(point))
-	       (unless (eq (point) opoint)
-		 (point))))))
-	(t (if (and (eq (char-before) TeX+-esc-char)
-		    (not (TeX-escaped-p (1- (point)))))
-	       (backward-char)))))
+	       (goto-char opoint))))
+	  ((looking-at-p "[ \t\n]")
+	   (cond ((TeX+-looking-back-at-unescaped-esc)
+		  (backward-char))
+		 ((save-excursion
+		    (skip-chars-forward " \t\n")
+		    (> (TeX+-skip-blanks-backward) 1))
+		  (skip-chars-backward " \t\n"))
+		 ;; The following two conditions are a nasty hack.  If
+		 ;; the first one is satisfied, we must be on
+		 ;; a control word.  If not, we have traveled too far,
+		 ;; and have to back up.  Note: the first form in
+		 ;; `(and...)' is always satisfied, because
+		 ;; `skip-chars-backward' returns a number.  This way,
+		 ;; we can use `and' instead of a `progn'.
+		 ((and (skip-chars-backward " \t\n")
+		       (< (skip-chars-backward TeX+-letter) 0)
+		       (TeX+-looking-back-at-unescaped-esc))
+		  (backward-char))
+		 (t (skip-chars-forward TeX+-letter))))
+	  (t (if (TeX+-looking-back-at-unescaped-esc)
+		 (backward-char))))))
 
 ; This function could probably be optimized for speed.  We'll see,
 ; however, whether this will be necessary.
