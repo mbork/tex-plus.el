@@ -305,6 +305,14 @@ the beginning of a token."
    (progn (TeX+-forward-token count)
 	  (point))))
 
+(defun TeX+-kill-token (&optional count)
+  "Kill COUNT tokens from point on.  Assume that point is at
+the beginning of a token."
+  (interactive "*p")
+  (kill-region
+   (point)
+   (progn (TeX+-forward-token count)
+	  (point))))
 
 (defun TeX+-backward-delete-token (&optional count)
   "Delete COUNT tokens to the left of the point."
