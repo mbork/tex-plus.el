@@ -300,16 +300,11 @@ This function is copied almost verbatim from `mark-word'."
   "Delete COUNT tokens from point on.  Assume that point is at
 the beginning of a token."
   (interactive "*p")
-  (let ((count (or count 1)))
-    (if (> count 0)
-	(delete-region
-	 (point)
-	 (progn (TeX+-forward-token count)
-		(point)))
-      (delete-region
-       (point)
-       (progn (TeX+-backward-token (- count))
-	      (point))))))
+  (delete-region
+   (point)
+   (progn (TeX+-forward-token count)
+	  (point))))
+
 
 (defun TeX+-backward-delete-token (&optional count)
   "Delete COUNT tokens to the left of the point."
