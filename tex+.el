@@ -134,14 +134,23 @@ Treat whitespace after a control word as belonging to it."
 		 ((save-excursion
 		    (skip-chars-forward " \t\n")
 		    (> (TeX+-skip-blanks-backward) 1))
-		  (skip-chars-backward " \t\n"))
+		  (skip-chars-backward " \t\n")
+		  ;; We are now at the beginning of a string of
+		  ;; whitespace including more than one newline, i.e.,
+		  ;; an implicit par.  But we might have landed on
+		  ;; a control symbol like "\ " etc.; if yes, we go
+		  ;; forward by one character.
+		  (when (TeX+-looking-back-at-unescaped-esc)
+		    (forward-char)))
 		 ;; The following two conditions are a nasty hack.  If
 		 ;; the first one is satisfied, we must be on
 		 ;; a control word.  If not, we have traveled too far,
 		 ;; and have to back up.  Note: the first form in
 		 ;; `(and...)' is always satisfied, because
 		 ;; `skip-chars-backward' returns a number.  This way,
-		 ;; we can use `and' instead of a `progn'.
+		 ;; we can use `and' instead of a `progn', which is
+		 ;; pretty clever, probably marginally faster, and
+		 ;; goes again good programming practices.
 		 ((and (skip-chars-backward " \t\n")
 		       (< (skip-chars-backward TeX+-letter) 0)
 		       (TeX+-looking-back-at-unescaped-esc))
