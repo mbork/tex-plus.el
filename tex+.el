@@ -137,7 +137,7 @@ Treat whitespace after a control word as belonging to it."
 		  (skip-chars-backward " \t\n")
 		  ;; We are now at the beginning of a string of
 		  ;; whitespace including more than one newline, i.e.,
-		  ;; an implicit par.  But we might have landed on
+		  ;; an implicit \par.  But we might have landed on
 		  ;; a control symbol like "\ " etc.; if yes, we go
 		  ;; forward by one character.
 		  (when (TeX+-looking-back-at-unescaped-esc)
@@ -265,6 +265,36 @@ want to know whether there is a delimiter after it."
 With argument ARG, do this that many times."
   (interactive "^p")
   (TeX+-forward-token (- (or count 1))))
+
+(defun TeX+-mark-token (&optional count allow-extend)
+  "Mark COUNT tokens, assuming that point is at the beginning of
+a token.  When COUNT is negative, mark backward.
+
+If this command is repeated or the region is active, extend the region
+by COUNT tokens.
+
+The second argument is non-nil when called interactively; when called
+from a Lisp program, it determines whether the region-extending
+behavior should be turned on.
+
+This function is copied almost verbatim from `mark-word'."
+  (interactive "P\np")
+  (cond ((and allow-extend
+	      (or (and (eq last-command this-command) (mark t))
+		  (region-active-p)))
+	 (setq count (if count (prefix-numeric-value count)
+		     (if (< (mark) (point)) -1 1)))
+	 (set-mark
+	  (save-excursion
+	    (goto-char (mark))
+	    (TeX+-forward-token count)
+	    (point))))
+	(t
+	 (push-mark
+	  (save-excursion
+	    (TeX+-forward-token (prefix-numeric-value count))
+	    (point))
+	  nil t))))
 
 (defun TeX+-delete-token (&optional count)
   "Delete COUNT tokens from point on.  Assume that point is at
