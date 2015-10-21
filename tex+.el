@@ -644,6 +644,61 @@ a delimiter, resorts to default show-paren--default function."
     (setq show-paren-data-function #'show-paren--default)))
 (make-variable-buffer-local 'show-paren-data-function)
 
+(defun TeX+-whats-next ()
+  "Determine what is the next thing from point.  Assume that we are
+at the beginning of a token.
+
+Possible results:
+- nothing-special
+- environment
+- other-token (implicit \par or a control word)
+- group
+- math-formula
+- subexpression (i.e., part of a formula between delimiters)
+- eob"
+  (let* ((token (TeX+-info-about-token-beginning-at-point))
+	 (token-string (car token)))
+    (cl-case (cdr token)
+      (control-symbol
+       (cond
+	((member token-string '("\\(" "\\["))
+	 'math-formula)
+	((and (string= token-string "\\{")
+	      (texmathp))
+	 'subexpression)
+	(t 'nothing-special)))
+      (control-word
+       (cond
+	((string= token-string "\\begin") 'environment)
+	((and (or (member token-string TeX+-left-delim-prefixes)
+		  (member token-string TeX+-left-delimiters))
+	      (let ((current-delim (TeX+-current-delimiter))
+		    (matching-delim (save-excursion
+				      (if (TeX+-find-matching-delimiter)
+					  (TeX+-current-delimiter)))))
+		(if matching-delim
+		    (or (and (eq current-delim 'left-prefix)
+			     (eq matching-delim 'right-prefix))
+			(and (eq current-delim 'left-without-prefix)
+			     (eq matching-delim 'right-without-prefix))))))
+	 'subexpression)
+	(t 'other-token)))
+      (implicit-par 'other-token)
+      (whitespace
+       (save-excursion
+	 (skip-chars-forward " t\n")
+	 (TeX+-whats-next)))
+      (normal-character
+       (cond
+	((string= token-string "{") 'group)
+	((string= token-string "$") 'math-formula)
+	((and (member token-string '("(" "["))
+	      (texmathp))
+	 'subexpression)
+	(t 'nothing-special)))
+      (eob 'eob))))
+
+(defun TeX+-forward-unit (&optional count)
 
 (eval-after-load 'latex '(progn
 			   (define-key LaTeX-mode-map (kbd "C-c C-0") 'TeX+-enlarge-delimiters)
