@@ -651,7 +651,7 @@ at the beginning of a token.
 Possible results:
 - nothing-special
 - environment
-- other-token (implicit \par or a control word)
+- other-token (implicit \par or a control sequence)
 - group
 - math-formula
 - subexpression (i.e., part of a formula between delimiters)
@@ -666,7 +666,7 @@ Possible results:
 	((and (string= token-string "\\{")
 	      (texmathp))
 	 'subexpression)
-	(t 'nothing-special)))
+	(t 'other-token)))
       (control-word
        (cond
 	((string= token-string "\\begin") 'environment)
