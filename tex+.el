@@ -699,6 +699,22 @@ Possible results:
       (eob 'eob))))
 
 (defun TeX+-forward-unit (&optional count)
+  "Move forward by the current unit (word by default)."
+  (interactive "p")
+  (cl-case (TeX+-whats-next)
+    (nothing-special (forward-word))
+    (environment (TeX+-forward-token)
+		 (forward-sexp)
+		 (LaTeX-find-matching-end))
+    (other-token (TeX+-forward-token))
+    (group (forward-sexp))
+    (math-formula
+     (if (string= (car (TeX+-info-about-token-beginning-at-point)) "$")
+	 (forward-sexp)
+       (TeX-re-search-forward-unescaped "\\\\[])]" nil t))) ; this is a bit oversimplified...
+    (subexpression
+     (TeX+-find-matching-delimiter)
+     (TeX+-forward-token (if (eq (TeX+-current-delimiter) 'right-prefix) 2 1)))))
 
 (eval-after-load 'latex '(progn
 			   (define-key LaTeX-mode-map (kbd "C-c C-0") 'TeX+-enlarge-delimiters)
