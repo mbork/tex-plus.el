@@ -708,13 +708,32 @@ Possible results:
 		 (LaTeX-find-matching-end))
     (other-token (TeX+-forward-token))
     (group (forward-sexp))
-    (math-formula
-     (if (string= (car (TeX+-info-about-token-beginning-at-point)) "$")
-	 (forward-sexp)
-       (TeX-re-search-forward-unescaped "\\\\[])]" nil t))) ; this is a bit oversimplified...
+    (math-formula (TeX+-forward-math-formula))
     (subexpression
      (TeX+-find-matching-delimiter)
      (TeX+-forward-token (if (eq (TeX+-current-delimiter) 'right-prefix) 2 1)))))
+
+(defun TeX+-forward-math-formula ()
+  "Move past the formula starting at point.
+Assume that the point is on a formula start.  Resort to `forward-sexp'
+if the formula starts with a dollar sign, and use a hand-crafted
+solution otherwise.
+
+Assume well-formedness of the formula (i.e., if math delimiters
+are not properly paired, the result is undefined)."
+  (interactive)
+  (let ((token (car (TeX+-info-about-token-beginning-at-point))))
+    (if (string= token "$")
+	(forward-sexp)
+      (let ((bal 0))
+	(while (progn
+		 (when (member token '("\\(" "\\["))
+		   (cl-incf bal))
+		 (when (member token '("\\)" "\\]"))
+		   (cl-decf bal))
+		 (TeX+-move-from-beginning-to-end-of-token)
+		 (setq token (car (TeX+-info-about-token-beginning-at-point)))
+		 (> bal 0)))))))
 
 (eval-after-load 'latex '(progn
 			   (define-key LaTeX-mode-map (kbd "C-c C-0") 'TeX+-enlarge-delimiters)
