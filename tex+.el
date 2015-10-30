@@ -319,6 +319,11 @@ the beginning of a token."
   (interactive "*p")
   (TeX+-delete-token (- (or count 1))))
 
+(defun TeX+-backward-kill-token (&optional count)
+  "Kill COUNT tokens to the left of the point."
+  (interactive "p")
+  (TeX+-kill-token (- (or count 1))))
+
 (defvar TeX+-left-delimiters
   '("(" "[" "\\lbrack" "\\{" "\\lbrace" "\\langle" "\\lfloor" "\\lceil" "\\lvert" "\\lVert"
     "\\ulcorner" "\\llcorner")
