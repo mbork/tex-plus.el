@@ -703,9 +703,8 @@ Possible results:
 	(t 'nothing-special)))
       (eob 'eob))))
 
-(defun TeX+-forward-unit (&optional count)
-  "Move forward by the current unit (word by default)."
-  (interactive "p")
+(defun TeX+-forward-one-unit ()
+  "Move forward by TeX \"word-like unit\"."
   (cl-case (TeX+-whats-next)
     (nothing-special (forward-word))
     (environment (TeX+-forward-token)
