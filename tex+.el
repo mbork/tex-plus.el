@@ -740,6 +740,54 @@ are not properly paired, the result is undefined)."
 		 (setq token (car (TeX+-info-about-token-beginning-at-point)))
 		 (> bal 0)))))))
 
+(defun TeX+-whats-prev ()
+  "Determine what is there before the point.
+Assume that we are at the beginning of a token.
+
+Possible results:
+- bob
+- group
+- environment
+- other-token (implicit \par or a control sequence)
+- math-formula
+- subexpression
+- nothing-special"
+  (if (not (bobp))
+      (save-excursion
+	(backward-char)
+	(TeX+-move-beginning-of-token)
+	(let* ((token (TeX+-info-about-token-beginning-at-point))
+	       (token-string (car token)))
+	  (cl-case (cdr token)
+	    ((control-symbol control-word)
+	     (cond ((member token-string '("\\)" "\\]"))
+		    'math-formula)
+		   ((memq (TeX+-current-delimiter) '(right-with-prefix right-without-prefix))
+		    'subexpression)
+		   (t 'other-token)))
+	    (implicit-par 'other-token)
+	    (whitespace
+	     (save-excursion
+	       (skip-chars-backward " \t\n")
+	       (TeX+-whats-prev)))
+	    (normal-character
+	     (cond
+	      ((and (string= token-string "$")
+		    (texmathp))
+	       'math-formula)
+	      ((memq (TeX+-current-delimiter) '(right-with-prefix right-without-prefix))
+		    'subexpression)
+	      ((string= token-string "}")
+	       (forward-char)
+	       (backward-sexp)
+	       (skip-chars-backward " \t") ; here we assume that there is no newline between \end and the environment name
+	       (backward-char 4)
+	       (if (looking-at-p "\\\\end")
+		   'environment
+		 'group))
+	      (t 'nothing-special))))))
+    'bob))
+
 (eval-after-load 'latex '(progn
 			   (define-key LaTeX-mode-map (kbd "C-c C-0") 'TeX+-enlarge-delimiters)
 			   (define-key LaTeX-mode-map (kbd "C-c C-9") 'TeX+-diminish-delimiters)
