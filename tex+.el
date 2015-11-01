@@ -261,7 +261,7 @@ want to know whether there is a delimiter after it."
 	(TeX+-move-beginning-of-token)))))
 
 (defun TeX+-backward-token (&optional count)
-  "Move backward until encountering the beginning of a word.
+  "Move backward until encountering the beginning of a token.
 With argument ARG, do this that many times."
   (interactive "^p")
   (TeX+-forward-token (- (or count 1))))
@@ -691,7 +691,7 @@ Possible results:
       (implicit-par 'other-token)
       (whitespace
        (save-excursion
-	 (skip-chars-forward " t\n")
+	 (skip-chars-forward " \t\n")
 	 (TeX+-whats-next)))
       (normal-character
        (cond
