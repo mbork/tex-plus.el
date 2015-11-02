@@ -656,7 +656,8 @@ at the beginning of a token.
 Possible results:
 - nothing-special
 - environment
-- other-token (implicit \par or a control sequence)
+- other-token (a control sequence)
+- implicit-par
 - group
 - math-formula
 - subexpression (i.e., part of a formula between delimiters)
@@ -688,7 +689,7 @@ Possible results:
 			     (eq matching-delim 'right-without-prefix))))))
 	 'subexpression)
 	(t 'other-token)))
-      (implicit-par 'other-token)
+      (implicit-par 'implicit-par)
       (whitespace
        (save-excursion
 	 (skip-chars-forward " \t\n")
@@ -747,7 +748,8 @@ Possible results:
 - bob
 - group
 - environment
-- other-token (implicit \par or a control sequence)
+- other-token (a control sequence)
+- implicit-par
 - math-formula
 - subexpression
 - nothing-special"
@@ -764,7 +766,7 @@ Possible results:
 		   ((memq (TeX+-current-delimiter) '(right-with-prefix right-without-prefix))
 		    'subexpression)
 		   (t 'other-token)))
-	    (implicit-par 'other-token)
+	    (implicit-par 'implicit-par)
 	    (whitespace
 	     (save-excursion
 	       (skip-chars-backward " \t\n")
