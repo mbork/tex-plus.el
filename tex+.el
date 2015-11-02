@@ -706,10 +706,18 @@ Possible results:
 
 (defun TeX+-forward-one-unit ()
   "Move forward by TeX \"word-like unit\"."
-  (cl-case (TeX+-whats-next)
+  (cl-case (prog1
+	       ;; This is a trick which moves the point past
+	       ;; whitespace /after/ determining what is ahead (so
+	       ;; that implicit par gets recognized), but before any
+	       ;; other action is taken (so that we may assume that
+	       ;; the point is /not/ on whitespace).  This means that
+	       ;; if (TeX+-whats-next) actually returned
+	       ;; 'implicit-par, nothing else should be done.
+	       (TeX+-whats-next)
+	     (skip-chars-forward " \t\n"))
     (nothing-special (forward-word))
     (environment (TeX+-forward-token)
-		 (forward-sexp)
 		 (LaTeX-find-matching-end))
     (other-token (TeX+-forward-token))
     (group (forward-sexp))
