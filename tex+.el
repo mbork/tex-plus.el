@@ -777,7 +777,7 @@ Possible results:
 		    (texmathp))
 	       'math-formula)
 	      ((memq (TeX+-current-delimiter) '(right-with-prefix right-without-prefix))
-		    'subexpression)
+	       'subexpression)
 	      ((string= token-string "}")
 	       (forward-char)
 	       (backward-sexp)
