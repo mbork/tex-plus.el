@@ -847,6 +847,39 @@ are not properly paired, the result is undefined)."
   (interactive "p")
   (TeX+-forward-unit (- count)))
 
+(defun TeX+-kill-unit (count)
+  "Kill COUNT units from point on."
+  (interactive "p")
+  (kill-region
+   (point)
+   (progn (TeX+-forward-unit count)
+	  (point))))
+
+(defun TeX+-backward-kill-unit (count)
+  "Kill COUNT units backward."
+  (interactive "p")
+  (TeX+-kill-unit (- count)))
+
+(defun TeX+-mark-unit (&optional arg allow-extend)
+  "A unit equivalent of `mark-word'."
+  (interactive "P\np")
+  (cond ((and allow-extend
+	      (or (and (eq last-command this-command) (mark t))
+		  (region-active-p)))
+	 (setq count (if count (prefix-numeric-value count)
+		     (if (< (mark) (point)) -1 1)))
+	 (set-mark
+	  (save-excursion
+	    (goto-char (mark))
+	    (TeX+-forward-unit count)
+	    (point))))
+	(t
+	 (push-mark
+	  (save-excursion
+	    (TeX+-forward-unit (prefix-numeric-value count))
+	    (point))
+	  nil t))))
+
 (eval-after-load 'latex '(progn
 			   (define-key LaTeX-mode-map (kbd "C-c C-0") 'TeX+-enlarge-delimiters)
 			   (define-key LaTeX-mode-map (kbd "C-c C-9") 'TeX+-diminish-delimiters)
