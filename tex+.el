@@ -835,6 +835,18 @@ are not properly paired, the result is undefined)."
 		   (cl-decf bal))
 		 (> bal 0)))))))
 
+(defun TeX+-forward-unit (count)
+  "Move forward by COUNT TeX \"word-like units\"."
+  (interactive "p")
+  (if (> count 0)
+      (dotimes (_ count) (TeX+-forward-one-unit))
+    (dotimes (_ count) (TeX+-backward-one-unit))))
+
+(defun TeX+-backward-unit (count)
+  "Move backward by COUNT TeX \"word-like units\"."
+  (interactive "p")
+  (TeX+-forward-unit (- count)))
+
 (eval-after-load 'latex '(progn
 			   (define-key LaTeX-mode-map (kbd "C-c C-0") 'TeX+-enlarge-delimiters)
 			   (define-key LaTeX-mode-map (kbd "C-c C-9") 'TeX+-diminish-delimiters)
