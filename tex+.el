@@ -800,6 +800,41 @@ Possible results:
 	      (t 'nothing-special))))))
     'bob))
 
+(defun TeX+-backward-one-unit (&optional count)
+  "Move backward by one TeX \"word-like unit\"."
+  (skip-chars-backward " \t")
+  (cl-case (TeX+-whats-prev)
+    (nothing-special (backward-word))
+    (environment
+     (backward-sexp)
+     (TeX+-backward-token)
+     (LaTeX-find-matching-begin))
+    (other-token (TeX+-backward-token))
+    (group (backward-sexp))
+    (math-formula (TeX+-backward-math-formula))
+    (subexpression (TeX+-find-matching-delimiter))))
+
+(defun TeX+-backward-math-formula ()
+  "Move before the formula the point is after.
+Resort to `forward-sexp' if the formula ends with a dollar sign,
+and use a hand-crafted solution otherwise.
+
+Assume well-formedness of the formula (i.e., if math delimiters
+are not properly paired, the result is undefined)."
+  (interactive)
+  (if (eq (char-before) ?$)
+      (backward-sexp)
+    (let (token)
+      (let ((bal 0))
+	(while (progn
+		 (TeX+-forward-token -1)
+		 (setq token (car (TeX+-info-about-token-beginning-at-point)))
+		 (when (member token '("\\)" "\\]"))
+		   (cl-incf bal))
+		 (when (member token '("\\(" "\\["))
+		   (cl-decf bal))
+		 (> bal 0)))))))
+
 (eval-after-load 'latex '(progn
 			   (define-key LaTeX-mode-map (kbd "C-c C-0") 'TeX+-enlarge-delimiters)
 			   (define-key LaTeX-mode-map (kbd "C-c C-9") 'TeX+-diminish-delimiters)
