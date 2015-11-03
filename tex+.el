@@ -735,18 +735,21 @@ solution otherwise.
 Assume well-formedness of the formula (i.e., if math delimiters
 are not properly paired, the result is undefined)."
   (interactive)
-  (let ((token (car (TeX+-info-about-token-beginning-at-point))))
-    (if (string= token "$")
-	(forward-sexp)
-      (let ((bal 0))
-	(while (progn
-		 (when (member token '("\\(" "\\["))
-		   (cl-incf bal))
-		 (when (member token '("\\)" "\\]"))
-		   (cl-decf bal))
-		 (TeX+-move-from-beginning-to-end-of-token)
-		 (setq token (car (TeX+-info-about-token-beginning-at-point)))
-		 (> bal 0)))))))
+  (let ((token (car (TeX+-info-about-token-beginning-at-point)))
+	(bal 0))
+    (while (progn
+	     (when (or (member token '("\\(" "\\["))
+		       (and (string= token "$")
+			    (not (texmathp))))
+	       (cl-incf bal))
+	     (when (or (member token '("\\)" "\\]"))
+		       (and (string= token "$")
+			    (texmathp)))
+	       (cl-decf bal))
+	     (TeX+-move-from-beginning-to-end-of-token)
+	     (setq token
+		   (car (TeX+-info-about-token-beginning-at-point)))
+	     (> bal 0)))))
 
 (defun TeX+-whats-prev ()
   "Determine what is there before the point.
@@ -822,18 +825,20 @@ and use a hand-crafted solution otherwise.
 Assume well-formedness of the formula (i.e., if math delimiters
 are not properly paired, the result is undefined)."
   (interactive)
-  (if (eq (char-before) ?$)
-      (backward-sexp)
-    (let (token)
-      (let ((bal 0))
-	(while (progn
-		 (TeX+-forward-token -1)
-		 (setq token (car (TeX+-info-about-token-beginning-at-point)))
-		 (when (member token '("\\)" "\\]"))
-		   (cl-incf bal))
-		 (when (member token '("\\(" "\\["))
-		   (cl-decf bal))
-		 (> bal 0)))))))
+  (let (token
+	(bal 0))
+    (while (progn
+	     (TeX+-forward-token -1)
+	     (setq token (car (TeX+-info-about-token-beginning-at-point)))
+	     (when (or (member token '("\\)" "\\]"))
+		       (and (string= token "$")
+			    (texmathp)))
+	       (cl-incf bal))
+	     (when (or (member token '("\\(" "\\["))
+		       (and (string= token "$")
+			    (not (texmathp))))
+	       (cl-decf bal))
+	     (> bal 0)))))
 
 (defun TeX+-forward-unit (count)
   "Move forward by COUNT TeX \"word-like units\"."
