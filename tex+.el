@@ -789,7 +789,10 @@ Possible results:
 	      ((string= token-string "}")
 	       (forward-char)
 	       (backward-sexp)
-	       (skip-chars-backward " \t") ; here we assume that there is no newline between \end and the environment name
+	       (skip-chars-backward " \t") ; here we assume that there
+					   ; is no newline between
+					   ; \end and the environment
+					   ; name
 	       (backward-char 4)
 	       (if (looking-at-p "\\\\end")
 		   'environment
