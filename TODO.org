@@ -6,3 +6,4 @@
 ** DONE Highlighting matching math delimiters
 ** DONE Automatic resizing of matching math delimiters
 ** TODO Autocompletion of amsrefs citations
+** DONE Fix the treatment of double dollar signs

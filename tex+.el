@@ -112,9 +112,10 @@ way."
 ; tokens: a control symbol, a control word (possibly followed by
 ; whitespace), implicit \par (more than one \newline, possibly
 ; interspersed by other whitespace), beginning of buffer, whitespace
-; (but not after a control word, unless it's an implicit \par), other
-; character.  The purpose of this function is to determine which one
-; we are at and to move to its beginning.
+; (but not after a control word, unless it's an implicit \par), double
+; dollar sign (not TeXnically a token ,but it 's useful to treat it
+; this way), other character.  The purpose of this function is to
+; determine which one we are at and to move to its beginning.
 (defun TeX+-move-beginning-of-token ()
   "Move to the beginning of TeX token the point is at.
 Treat whitespace after a control word as belonging to it."
@@ -156,8 +157,14 @@ Treat whitespace after a control word as belonging to it."
 		       (TeX+-looking-back-at-unescaped-esc))
 		  (backward-char))
 		 (t (skip-chars-forward TeX+-letter))))
-	  (t (if (TeX+-looking-back-at-unescaped-esc)
-		 (backward-char))))))
+	  (t (cond ((TeX+-looking-back-at-unescaped-esc)
+		    (backward-char))
+		   ((eq (char-after) ?$)
+		    (unless (zerop (skip-chars-backward "$"))
+		      (if (TeX+-looking-back-at-unescaped-esc)
+			  (forward-char))
+		      (goto-char (- opoint
+				    (mod (- opoint (point)) 2))))))))))
 
 ; This function could probably be optimized for speed.  We'll see,
 ; however, whether this will be necessary.
@@ -165,7 +172,7 @@ Treat whitespace after a control word as belonging to it."
   "Return a cons cell with car being the token beginning at point
 and cdr being one of the following symbols: 'control-symbol,
 'control-word, 'implicit-par, 'whitespace, 'normal-character,
-'eob.
+'double-dollar, 'eob.
 
 For simplicity, if the point is at a backslash, which is the last
 character in the buffer, it treats it as a control symbol."
@@ -193,6 +200,7 @@ character in the buffer, it treats it as a control symbol."
 	       (if (looking-at "[ \t]*\\(?:\n[ \t]*\\)\\{2,\\}")
 		   'implicit-par
 		 'whitespace)))
+	((looking-at-p "\\$\\$") '("$$" . double-dollar))
 	(t (cons (buffer-substring-no-properties
 		  (point)
 		  (1+ (point)))
