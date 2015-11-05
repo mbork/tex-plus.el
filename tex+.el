@@ -220,6 +220,7 @@ whitespace, too."
 		  (unless (looking-at-p "\\(?:\n[ \t]*\\)\\{2,\\}")
 		    (skip-chars-forward " \t\n")))
     ((implicit-par whitespace) (skip-chars-forward " \t\n"))
+    (double-dollar (forward-char 2))
     (normal-character (forward-char))))
 
 (defun TeX+-move-end-of-token ()
@@ -681,6 +682,10 @@ Possible results:
 	      (texmathp))
 	 'subexpression)
 	(t 'other-token)))
+      (double-dollar
+       (if (texmathp)
+	   'other-token
+	 'math-formula))
       (control-word
        (cond
 	((string= token-string "\\begin") 'environment)
@@ -785,6 +790,10 @@ Possible results:
 		   ((memq (TeX+-current-delimiter) '(right-with-prefix right-without-prefix))
 		    'subexpression)
 		   (t 'other-token)))
+	    (double-dollar
+	     (if (texmathp)
+		 'other-token
+	       'math-formula))
 	    (implicit-par 'implicit-par)
 	    (whitespace
 	     (save-excursion
