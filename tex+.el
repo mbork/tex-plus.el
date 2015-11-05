@@ -215,10 +215,10 @@ whitespace, too."
   (cl-case (cdr (TeX+-info-about-token-beginning-at-point))
     (control-symbol (forward-char 2))
     (control-word (forward-char)
-		   (skip-chars-forward TeX+-letter)
-		   (skip-chars-forward " \t")
-		   (unless (looking-at-p "\\(?:\n[ \t]*\\)\\{2,\\}")
-		     (skip-chars-forward " \t\n")))
+		  (skip-chars-forward TeX+-letter)
+		  (skip-chars-forward " \t")
+		  (unless (looking-at-p "\\(?:\n[ \t]*\\)\\{2,\\}")
+		    (skip-chars-forward " \t\n")))
     ((implicit-par whitespace) (skip-chars-forward " \t\n"))
     (normal-character (forward-char))))
 
@@ -801,9 +801,8 @@ Possible results:
 	       (forward-char)
 	       (backward-sexp)
 	       (skip-chars-backward " \t") ; here we assume that there
-					   ; is no newline between
-					   ; \end and the environment
-					   ; name
+					; is no newline between \end
+					; and the environment name
 	       (backward-char 4)
 	       (if (looking-at-p "\\\\end")
 		   'environment
