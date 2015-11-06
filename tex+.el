@@ -448,14 +448,15 @@ an ambiguous delimiter without a prefix), or outside math mode."
 (defun TeX+-find-matching-delimiter (&optional interactive)
   "If at a delimiter, goto the (beginning of) the matching
 one (or its prefix, if present) and return t.  In case of an
-unmatched delimiter, stop right before the border of math mode.
+unmatched delimiter, don't move and return nil.
 
 Currently, if both delimiters have non-matching prefixes, we still
 move to the right spot, but throw an error when INTERACTIVE is non-nil
 \(which it is in case of an interactive call) or return nil
 otherwise."
   (interactive "p")
-  (let ((current-delim (TeX+-current-delimiter)))
+  (let ((opoint (point))
+	(current-delim (TeX+-current-delimiter)))
     (when current-delim
       (if (memq current-delim '(left-prefix right-prefix))
 	  (TeX+-forward-token)
@@ -484,8 +485,7 @@ otherwise."
 	     (delim-counter 1)
 	     (error nil))
 	(while (and (> delim-counter 0)
-		    (texmathp))		; if we get outside math mode,
-					; we'd better stop!
+		    (not (eobp)))	; TODO: this might be too far!
 	  (funcall goto-next)
 	  (setq current-delim (TeX+-current-delimiter)) ; we reuse
 					; this no longer needed
@@ -494,20 +494,29 @@ otherwise."
 	      (incf delim-counter))
 	  (if (memq current-delim dec-tokens)
 	      (decf delim-counter)))
-	(if (memq (TeX+-current-delimiter)
+	(if (memq current-delim
 		  '(left-with-prefix right-with-prefix))
 	    (if (string= (TeX+-name-of-previous-token) (TeX+-corresponding-delim-prefix prefix))
 		(TeX+-backward-token)
-	      (when interactive
-		(error "Prefix mismatch!")
+	      (if interactive
+		  (error "Prefix mismatch!")
 		(setq error t)))
 	  (unless (string= prefix "")
-	    (when interactive
-	      (error "Prefix mismatch!")
+	    (if interactive
+		(error "Prefix mismatch!")
 	      (setq error t))))
-	(unless (texmathp)
-	  (funcall goto-next -1)	; get back into math mode
-	  (setq error t))
+	(when (or (eobp) (bobp))	; Here we assume that the very
+					; first thing in a buffer
+					; cannot be a delimiter!
+					; While it is possible for
+					; a correct TeX file not to
+					; satisfy this, it should
+					; probably not happen in
+					; practice.
+	  (goto-char opoint)
+	  (if interactive
+	      (error "Matching delimiter not found")
+	    (setq error t)))
 	(not error)))))
 
 (defun TeX+-change-token-at-point (new-token)
