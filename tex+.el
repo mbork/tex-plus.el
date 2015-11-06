@@ -750,9 +750,7 @@ Possible results:
 
 (defun TeX+-forward-math-formula ()
   "Move past the formula starting at point.
-Assume that the point is on a formula start.  Resort to `forward-sexp'
-if the formula starts with a dollar sign, and use a hand-crafted
-solution otherwise.
+Assume that the point is on a formula start.
 
 Assume well-formedness of the formula (i.e., if math delimiters
 are not properly paired, the result is undefined)."
@@ -761,11 +759,11 @@ are not properly paired, the result is undefined)."
 	(bal 0))
     (while (progn
 	     (when (or (member token '("\\(" "\\["))
-		       (and (string= token "$")
+		       (and (member token '("$" "$$"))
 			    (not (texmathp))))
 	       (cl-incf bal))
 	     (when (or (member token '("\\)" "\\]"))
-		       (and (string= token "$")
+		       (and (member token '("$" "$$"))
 			    (texmathp)))
 	       (cl-decf bal))
 	     (TeX+-move-from-beginning-to-end-of-token)
@@ -844,8 +842,6 @@ Possible results:
 
 (defun TeX+-backward-math-formula ()
   "Move before the formula the point is after.
-Resort to `forward-sexp' if the formula ends with a dollar sign,
-and use a hand-crafted solution otherwise.
 
 Assume well-formedness of the formula (i.e., if math delimiters
 are not properly paired, the result is undefined)."
@@ -856,11 +852,11 @@ are not properly paired, the result is undefined)."
 	     (TeX+-forward-token -1)
 	     (setq token (car (TeX+-info-about-token-beginning-at-point)))
 	     (when (or (member token '("\\)" "\\]"))
-		       (and (string= token "$")
+		       (and (member token '("$" "$$"))
 			    (texmathp)))
 	       (cl-incf bal))
 	     (when (or (member token '("\\(" "\\["))
-		       (and (string= token "$")
+		       (and (member token '("$" "$$"))
 			    (not (texmathp))))
 	       (cl-decf bal))
 	     (> bal 0)))))
