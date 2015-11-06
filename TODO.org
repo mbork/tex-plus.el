@@ -6,4 +6,11 @@
 ** DONE Highlighting matching math delimiters
 ** DONE Automatic resizing of matching math delimiters
 ** TODO Autocompletion of amsrefs citations
-** DONE Fix the treatment of double dollar signs
+** TODO Fix a problem with finding a matching delimiter if something like \text is used
+** TODO Fix the problem with comments
+token-moving commands do not skip comments
+(not sure what to do about this...)
+** TODO Fix the treatment of double dollar signs
+*** TODO TeX+-find-matching-delimiter
+*** TODO TeX+-forward-math-formula
+*** TODO TeX+-backward-math-formula
