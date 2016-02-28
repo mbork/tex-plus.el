@@ -445,6 +445,10 @@ an ambiguous delimiter without a prefix), or outside math mode."
 	   ((member current-token TeX+-right-delimiters)
 	    'right-without-prefix))))))))
 
+(defcustom TeX+-find-matching-delimiter-distance 1024
+  "The maximum distance `TeX+-find-matching-delimiter' looks for the
+matching delimiter.  If nil, search the whole buffer.")
+
 (defun TeX+-find-matching-delimiter (&optional interactive)
   "If at a delimiter, goto the (beginning of) the matching
 one (or its prefix, if present) and return t.  In case of an
@@ -484,28 +488,33 @@ otherwise."
 		'(left-with-prefix left-without-prefix)))
 	     (delim-counter 1)
 	     (error nil))
-	(while (and (> delim-counter 0)
-		    (not (eobp)))	; TODO: this might be too far!
-	  (funcall goto-next)
-	  (setq current-delim (TeX+-current-delimiter)) ; we reuse
+	(save-restriction
+	  (when TeX+-find-matching-delimiter-distance
+	    (narrow-to-region
+	     (max (point-min) (- (point) TeX+-find-matching-delimiter-distance))
+	     (min (point-max) (+ (point) TeX+-find-matching-delimiter-distance))))
+	  (while (and (> delim-counter 0)
+		      (not (or (eobp) (bobp)))) ; TODO: this is too far!
+	    (funcall goto-next)
+	    (setq current-delim (TeX+-current-delimiter)) ; we reuse
 					; this no longer needed
 					; variable for optimization
-	  (if (memq current-delim inc-tokens)
-	      (incf delim-counter))
-	  (if (memq current-delim dec-tokens)
-	      (decf delim-counter)))
-	(if (memq current-delim
-		  '(left-with-prefix right-with-prefix))
-	    (if (string= (TeX+-name-of-previous-token) (TeX+-corresponding-delim-prefix prefix))
-		(TeX+-backward-token)
+	    (if (memq current-delim inc-tokens)
+		(incf delim-counter))
+	    (if (memq current-delim dec-tokens)
+		(decf delim-counter)))
+	  (if (memq current-delim
+		    '(left-with-prefix right-with-prefix))
+	      (if (string= (TeX+-name-of-previous-token) (TeX+-corresponding-delim-prefix prefix))
+		  (TeX+-backward-token)
+		(if interactive
+		    (error "Prefix mismatch!")
+		  (setq error t)))
+	    (unless (string= prefix "")
 	      (if interactive
 		  (error "Prefix mismatch!")
-		(setq error t)))
-	  (unless (string= prefix "")
-	    (if interactive
-		(error "Prefix mismatch!")
-	      (setq error t))))
-	(when (or (eobp) (bobp))	; Here we assume that the very
+		(setq error t))))
+	  (when (or (eobp) (bobp))	; Here we assume that the very
 					; first thing in a buffer
 					; cannot be a delimiter!
 					; While it is possible for
@@ -513,10 +522,10 @@ otherwise."
 					; satisfy this, it should
 					; probably not happen in
 					; practice.
-	  (goto-char opoint)
-	  (if interactive
-	      (error "Matching delimiter not found")
-	    (setq error t)))
+	    (goto-char opoint)
+	    (if interactive
+		(error "Matching delimiter not found")
+	      (setq error t))))
 	(not error)))))
 
 (defun TeX+-change-token-at-point (new-token)
