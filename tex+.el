@@ -915,6 +915,16 @@ are not properly paired, the result is undefined)."
 	    (point))
 	  nil t))))
 
+(define-minor-mode TeX+-syntactic-movement-mode
+  "Toggle a minor with the word-moving commands move unit-wise.
+This means that instead by words, they can move by tokens, groups,
+math (sub)formulas -- according to the context."
+  :lighter " T+m"
+  (if TeX+-syntactic-movement-mode
+      ;; turn it on
+    ;; turn it off
+      ))
+
 (eval-after-load 'latex '(progn
 			   (define-key LaTeX-mode-map (kbd "C-c C-0") 'TeX+-enlarge-delimiters)
 			   (define-key LaTeX-mode-map (kbd "C-c C-9") 'TeX+-diminish-delimiters)
