@@ -680,10 +680,10 @@ a delimiter, resorts to default show-paren--default function."
   "Determine what is the next thing from point.  Assume that we are
 at the beginning of a token.
 
-Possible results:
+Possible results (symbols):
 - nothing-special
 - environment
-- other-token (a control sequence)
+- other-token (a control sequence or $$ in math mode)
 - implicit-par
 - group
 - math-formula
