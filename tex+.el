@@ -156,7 +156,14 @@ Treat whitespace after a control word as belonging to it."
 		       (< (skip-chars-backward TeX+-letter) 0)
 		       (TeX+-looking-back-at-unescaped-esc))
 		  (backward-char))
-		 (t (skip-chars-forward TeX+-letter))))
+		 ;; Now, if we don't skip and letters here, it means
+		 ;; (probably) that we are on a run of spaces, and
+		 ;; hence we must check whether there is a "\ "
+		 ;; followed by blanks.  (This should really be
+		 ;; rewritten...)
+		 (t (and (= (skip-chars-forward TeX+-letter) 0)
+			 (TeX+-looking-back-at-unescaped-esc)
+			 (forward-char)))))
 	  (t (cond ((TeX+-looking-back-at-unescaped-esc)
 		    (backward-char))
 		   ((eq (char-after) ?$)
